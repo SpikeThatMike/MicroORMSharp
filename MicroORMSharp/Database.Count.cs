@@ -19,7 +19,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
             //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()
@@ -44,7 +44,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
             //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()

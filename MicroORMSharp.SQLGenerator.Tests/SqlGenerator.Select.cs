@@ -34,7 +34,7 @@ namespace MicroORMSharp.SqlGenerator.Tests
 
             Assert.AreEqual(
                 query,
-                "SELECT TOP (1)  [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers]",
+                "SELECT TOP (1) [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers]",
                 "Take queries do not match"
             );
         }

@@ -12,9 +12,9 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void TruncateTable<T>(CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static void TruncateTable<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TruncateTable();
 
             using (IDbConnection db = Database.GetConnection())
@@ -28,9 +28,9 @@ namespace MicroORMSharp
             }
         }
 
-        public static async Task TruncateTableAsync<T>(CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static async Task TruncateTableAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TruncateTable();
 
             using (IDbConnection db = Database.GetConnection())

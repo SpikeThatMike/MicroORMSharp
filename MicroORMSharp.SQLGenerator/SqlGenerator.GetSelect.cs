@@ -48,7 +48,7 @@ namespace MicroORMSharp.SqlGenerator
             //SQL SERVER TOP
             if (DatabaseType == DatabaseType.SqlServer && dbQuery._take != null)
             {
-                sqlQuery.Query.Append($" TOP ({dbQuery._take}) ");
+                sqlQuery.Query.Append($" TOP ({dbQuery._take})");
             }
 
             //Select rows

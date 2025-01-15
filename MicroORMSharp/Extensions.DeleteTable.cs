@@ -12,9 +12,9 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void DropTable<T>(CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static void DropTable<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
             using (IDbConnection db = Database.GetConnection())
@@ -28,9 +28,9 @@ namespace MicroORMSharp
             }
         }
 
-        public static async Task DropTableAsync<T>(CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static async Task DropTableAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
             using (IDbConnection db = Database.GetConnection())

@@ -12,14 +12,14 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void Delete<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static void Delete<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
             using (IDbConnection db = Database.GetConnection())
@@ -33,14 +33,14 @@ namespace MicroORMSharp
             }
         }
 
-        public static async Task DeleteAsync<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static async Task DeleteAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DeleteRow(entity);
 
             using (IDbConnection db = Database.GetConnection())

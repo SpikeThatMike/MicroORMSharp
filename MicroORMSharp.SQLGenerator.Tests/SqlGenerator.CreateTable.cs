@@ -14,7 +14,7 @@ namespace MicroORMSharp.SqlGenerator.Tests
 
             Assert.AreEqual(
                 query,
-                "CREATE TABLE `Customers` (Id BIGINT NOT NULL AUTO_INCREMENT, Forename LONGTEXT, Surname LONGTEXT, AddressLine1 LONGTEXT, AddressLine2 LONGTEXT, AddressLine3 LONGTEXT, AddressLine4 LONGTEXT, Postalcode VARCHAR(10), Nullable INT, NotNullable INT NOT NULL, Active BIT NOT NULL)",
+                "CREATE TABLE `Customers` (Id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, Forename LONGTEXT, Surname LONGTEXT, AddressLine1 LONGTEXT, AddressLine2 LONGTEXT, AddressLine3 LONGTEXT, AddressLine4 LONGTEXT, Postalcode VARCHAR(10), Nullable INT, NotNullable INT NOT NULL, Active BIT NOT NULL)",
                 "Create table queries do not match"
             );
         }

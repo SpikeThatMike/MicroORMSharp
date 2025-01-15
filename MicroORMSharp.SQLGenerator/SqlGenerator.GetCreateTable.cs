@@ -80,7 +80,7 @@ namespace MicroORMSharp.SqlGenerator
                 }
                 else if (DatabaseType == DatabaseType.MySql)
                 {
-                    stringBuilder.Append(" AUTO_INCREMENT");
+                    stringBuilder.Append(" AUTO_INCREMENT PRIMARY KEY");
                 }
             }
 

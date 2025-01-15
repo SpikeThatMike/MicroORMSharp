@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Google.Protobuf.Collections;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
@@ -12,36 +13,43 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void CreateTable<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static bool TableExists<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
-            var sqlQuery = sqlGenerator.CreateTable();
+            var sqlQuery = sqlGenerator.TableExists();
 
+            bool exists = false;
             using (IDbConnection db = Database.GetConnection())
             {
-                db.Execute(new CommandDefinition(
+                exists = db.QueryFirstOrDefault<bool>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
+
+
+            return exists;
         }
 
-        public static async Task CreateTableAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task<bool> TableExistsAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
-            var sqlQuery = sqlGenerator.CreateTable();
+            var sqlQuery = sqlGenerator.TableExists();
 
+            bool exists = false;
             using (IDbConnection db = Database.GetConnection())
             {
-                await db.ExecuteAsync(new CommandDefinition(
+                exists = await db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
+
+            return exists;
         }
     }
 }

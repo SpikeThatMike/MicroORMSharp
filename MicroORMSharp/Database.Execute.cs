@@ -21,7 +21,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
             IEnumerable<T> results;
@@ -45,7 +45,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
             IEnumerable<T> results;

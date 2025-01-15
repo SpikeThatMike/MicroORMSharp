@@ -12,14 +12,14 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static T Update<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static T Update<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.UpdateRow(entity);
 
             using (IDbConnection db = Database.GetConnection())
@@ -35,14 +35,14 @@ namespace MicroORMSharp
             return entity;
         }
 
-        public static void UpdateOnly<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static void UpdateOnly<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.UpdateRow(entity);
             using (IDbConnection db = Database.GetConnection())
             {
@@ -55,14 +55,14 @@ namespace MicroORMSharp
             }
         }
 
-        public static async Task<T> UpdateAsync<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static async Task<T> UpdateAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.UpdateRow(entity);
 
             using (IDbConnection db = Database.GetConnection())
@@ -78,14 +78,14 @@ namespace MicroORMSharp
             return entity;
         }
 
-        public static async void UpdateOnlyAsync<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static async void UpdateOnlyAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database._databaseType);
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.UpdateRow(entity);
             using (IDbConnection db = Database.GetConnection())
             {

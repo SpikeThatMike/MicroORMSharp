@@ -1,4 +1,5 @@
 ﻿using MicroORMSharp.ExampleModels;
+using MicroORMSharp.Models;
 using MicroORMSharp.SqlGenerator;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
@@ -13,15 +14,9 @@ namespace MicroORMSharp
 {
     public static partial class Database
     {
-        private static Dictionary<string, string> _connections = new Dictionary<string, string>();
-        private static string _currentConnection;
+        private static List<ServerConnections> _connections = new List<ServerConnections>();
+        private static ServerConnections _currentConnection;
         private static string _defaultDatabaseSchema;
-
-        [Browsable(false)]
-        [Bindable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static DatabaseType _databaseType = DatabaseType.SqlServer;
 
         [Browsable(false)]
         [Bindable(false)]
@@ -34,76 +29,91 @@ namespace MicroORMSharp
             return new DbQuery<T>();
         }
 
-        public static void SetDatabaseType(DatabaseType type)
-        {
-            _databaseType = type;
-        }
-
-        public static void SetDatabaseType(DatabaseType type, string defaultSchema)
-        {
-            _databaseType = type;
-            _defaultDatabaseSchema = defaultSchema;
-        }
-
         public static IDbConnection GetConnection()
         {
-            if (_currentConnection == null)
+            if (_currentConnection == null || string.IsNullOrEmpty(_currentConnection.ConnectionString))
             {
                 throw new Exception("No connection string set");
             }
 
-            var connectionString = _connections[_currentConnection];
+            var connectionString = _currentConnection.ConnectionString;
 
-            return _databaseType switch
+            return _currentConnection.DatabaseType switch
             {
                 DatabaseType.MySql => new MySqlConnection(connectionString),
                 DatabaseType.SqlServer => new SqlConnection(connectionString),
-                _ => throw new ArgumentException($"Unsupported database type connection: {_databaseType}")
+                _ => throw new ArgumentException($"Unsupported database type connection: {_currentConnection.DatabaseType}")
             };
         }
 
         public static IDbConnection GetConnection(string reference)
         {
-            if (!_connections.ContainsKey(reference))
+            if (!_connections.Any(x => x.Reference == reference))
             {
                 throw new Exception("No connection string with this reference");
             }
 
-            var connectionString = _connections[reference];
+            var connection = _connections.First(x => x.Reference == reference);
 
-            return _databaseType switch
+            return connection.DatabaseType switch
             {
-                DatabaseType.MySql => new MySqlConnection(connectionString),
-                DatabaseType.SqlServer => new SqlConnection(connectionString),
-                _ => throw new ArgumentException($"Unsupported database type connection: {_databaseType}")
+                DatabaseType.MySql => new MySqlConnection(connection.ConnectionString),
+                DatabaseType.SqlServer => new SqlConnection(connection.ConnectionString),
+                _ => throw new ArgumentException($"Unsupported database type connection: {connection.DatabaseType}")
             };
         }
 
-        public static void AddConnectionString(string reference, string sqlConnection)
+        public static DatabaseType GetDatabaseType()
         {
-            if (_connections.ContainsKey(reference))
+            return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
+        }
+
+        public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection)
+        {
+            if (_connections.Any(x => x.Reference == reference))
             {
                 throw new Exception("Connection reference already exists");
             }
 
-            _connections.Add(reference, sqlConnection);
+            IDbConnection result = databaseType switch
+            {
+                DatabaseType.SqlServer => new SqlConnection(sqlConnection),
+                DatabaseType.MySql => new MySqlConnection(sqlConnection),
+                _ => throw new Exception("Unknown value")
+            };
+
+            try
+            {
+                result.Open();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Connection to database failed");
+            }
+            finally
+            {
+                result.Close();
+                result.Dispose();
+            }
+            var connection = new ServerConnections(databaseType, reference, sqlConnection);
+            _connections.Add(connection);
 
             if (_connections.Count == 1)
             {
-                _currentConnection = reference;
+                _currentConnection = connection;
             }
         }
 
         public static void RemoveConnectionString(string reference)
         {
-            if (!_connections.ContainsKey(reference))
+            if (!_connections.Any(x => x.Reference == reference))
             {
                 throw new Exception("Connection reference doesn't exists");
             }
 
-            _connections.Remove(reference);
+            _connections.Remove(_connections.First(x => x.Reference == reference));
 
-            if (_currentConnection == reference)
+            if (_currentConnection.Reference == reference)
             {
                 if (_connections.Count == 0)
                 {
@@ -111,17 +121,9 @@ namespace MicroORMSharp
                 }
                 else
                 {
-                    _currentConnection = _connections.Keys.First();
+                    _currentConnection = _connections.First();
                 }
             }
-        }
-    }
-
-    public class T
-    {
-        public void Test()
-        {
-            Database.Query<Customers>().Execute();
         }
     }
 }
