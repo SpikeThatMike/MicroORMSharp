@@ -73,7 +73,7 @@ namespace MicroORMSharp
             return _currentConnection?.AllowTableExtensions ?? false;
         }
 
-        public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection, bool allowTableExtensions = false)
+        public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection, bool allowTableExtensions = false, bool connectionTest = true)
         {
             if (_connections.Any(x => x.Reference == reference))
             {
@@ -87,19 +87,23 @@ namespace MicroORMSharp
                 _ => throw new Exception("Unknown value")
             };
 
-            try
+            if (connectionTest)
             {
-                result.Open();
+                try
+                {
+                    result.Open();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Connection to database failed");
+                }
+                finally
+                {
+                    result.Close();
+                    result.Dispose();
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Connection to database failed");
-            }
-            finally
-            {
-                result.Close();
-                result.Dispose();
-            }
+
             var connection = new ServerConnections(databaseType, reference, sqlConnection, allowTableExtensions);
             _connections.Add(connection);
 
