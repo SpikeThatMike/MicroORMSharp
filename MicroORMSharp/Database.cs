@@ -68,7 +68,12 @@ namespace MicroORMSharp
             return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
         }
 
-        public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection)
+        public static bool GetTableExtensionsOption()
+        {
+            return _currentConnection?.AllowTableExtensions ?? false;
+        }
+
+        public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection, bool allowTableExtensions = false)
         {
             if (_connections.Any(x => x.Reference == reference))
             {
@@ -95,7 +100,7 @@ namespace MicroORMSharp
                 result.Close();
                 result.Dispose();
             }
-            var connection = new ServerConnections(databaseType, reference, sqlConnection);
+            var connection = new ServerConnections(databaseType, reference, sqlConnection, allowTableExtensions);
             _connections.Add(connection);
 
             if (_connections.Count == 1)

@@ -15,6 +15,11 @@ namespace MicroORMSharp
     {
         public static bool TableExists<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
+            if (!Database.GetTableExtensionsOption())
+            {
+                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            }
+
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 
@@ -35,6 +40,11 @@ namespace MicroORMSharp
 
         public static async Task<bool> TableExistsAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
+            if (!Database.GetTableExtensionsOption())
+            {
+                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            }
+
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 

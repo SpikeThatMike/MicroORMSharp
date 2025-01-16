@@ -15,6 +15,11 @@ namespace MicroORMSharp
     {
         public static void DropTable<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
+            if (!Database.GetTableExtensionsOption())
+            {
+                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            }
+
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
@@ -31,6 +36,11 @@ namespace MicroORMSharp
 
         public static async Task DropTableAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
+            if (!Database.GetTableExtensionsOption())
+            {
+                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            }
+
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
