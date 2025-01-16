@@ -1,10 +1,10 @@
 ﻿using Dapper;
-using Google.Protobuf.Collections;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +50,22 @@ namespace MicroORMSharp
             }
 
             return exists;
+        }
+
+        public static bool TableExists<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        {
+            T entity = entities.FirstOrDefault();
+            entity ??= (T)Activator.CreateInstance(typeof(T));
+
+            return TableExists(entity, cancellationToken);
+        }
+
+        public static async Task<bool> TableExistsAsync<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        {
+            T entity = entities.FirstOrDefault();
+            entity ??= (T)Activator.CreateInstance(typeof(T));
+
+            return await TableExistsAsync(entity, cancellationToken);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static T Insert<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static T Insert<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -35,7 +35,7 @@ namespace MicroORMSharp
             return entity;
         }
 
-        public static void InsertOnly<T>(this T entity, CancellationToken cancellationToken) where T : IMicroORMSharp
+        public static void InsertOnly<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
         {
             if (entity == null)
             {

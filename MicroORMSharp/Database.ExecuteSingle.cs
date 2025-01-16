@@ -1,8 +1,6 @@
 ﻿using Dapper;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
-using Mysqlx.Session;
-using MySqlX.XDevAPI.Common;
 using System;
 using System.Collections.Generic;
 using System.Data;

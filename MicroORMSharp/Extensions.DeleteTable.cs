@@ -4,6 +4,7 @@ using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +43,22 @@ namespace MicroORMSharp
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
+        }
+
+        public static void DropTable<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        {
+            T entity = entities.FirstOrDefault();
+            entity ??= (T)Activator.CreateInstance(typeof(T));
+
+            DropTable(entity, cancellationToken);
+        }
+
+        public static async Task DropTableAsync<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        {
+            T entity = entities.FirstOrDefault();
+            entity ??= (T)Activator.CreateInstance(typeof(T));
+
+            await DropTableAsync(entity, cancellationToken);
         }
     }
 }

@@ -2,7 +2,7 @@
 using MicroORMSharp.Models;
 using MicroORMSharp.SqlGenerator;
 using Microsoft.Data.SqlClient;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -102,6 +102,16 @@ namespace MicroORMSharp
             {
                 _currentConnection = connection;
             }
+        }
+
+        public static void SetConnectionString(string reference)
+        {
+            if (!_connections.Any(x => x.Reference == reference))
+            {
+                throw new Exception("Connection reference doesn't exists");
+            }
+
+            _currentConnection = _connections.FirstOrDefault(x => x.Reference == reference);
         }
 
         public static void RemoveConnectionString(string reference)
