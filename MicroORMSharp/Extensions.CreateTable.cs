@@ -13,7 +13,7 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void CreateTable<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static void CreateTable<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             if (!Database.GetTableExtensionsOption())
             {
@@ -28,13 +28,13 @@ namespace MicroORMSharp
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
         }
 
-        public static async Task CreateTableAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task CreateTableAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             if (!Database.GetTableExtensionsOption())
             {
@@ -49,13 +49,13 @@ namespace MicroORMSharp
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
         }
 
-        public static void CreateTable<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static void CreateTable<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
@@ -63,7 +63,7 @@ namespace MicroORMSharp
             CreateTable(entity, cancellationToken);
         }
 
-        public static async Task CreateTableAsync<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task CreateTableAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));

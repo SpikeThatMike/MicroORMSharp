@@ -39,7 +39,7 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public CancellationToken _cancellationToken { get; set; } = default;
+        public CancellationToken? _cancellationToken { get; set; } = null;
 
         [Browsable(false)]
         [Bindable(false)]

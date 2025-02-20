@@ -13,12 +13,12 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static bool TableExists<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static bool TableExists<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
-            if (!Database.GetTableExtensionsOption())
-            {
-                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
-            }
+            //if (!Database.GetTableExtensionsOption())
+            //{
+            //    throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            //}
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
@@ -29,7 +29,7 @@ namespace MicroORMSharp
                 exists = db.QueryFirstOrDefault<bool>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
@@ -38,12 +38,12 @@ namespace MicroORMSharp
             return exists;
         }
 
-        public static async Task<bool> TableExistsAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task<bool> TableExistsAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
-            if (!Database.GetTableExtensionsOption())
-            {
-                throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
-            }
+            //if (!Database.GetTableExtensionsOption())
+            //{
+            //    throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
+            //}
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
@@ -54,7 +54,7 @@ namespace MicroORMSharp
                 exists = await db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
@@ -62,7 +62,7 @@ namespace MicroORMSharp
             return exists;
         }
 
-        public static bool TableExists<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static bool TableExists<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
@@ -70,7 +70,7 @@ namespace MicroORMSharp
             return TableExists(entity, cancellationToken);
         }
 
-        public static async Task<bool> TableExistsAsync<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task<bool> TableExistsAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));

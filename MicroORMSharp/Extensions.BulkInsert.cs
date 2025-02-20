@@ -18,7 +18,7 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void Insert<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static void Insert<T>(this IEnumerable<T> entities) where T : IMicroORMSharp
         {
             if (entities == null)
             {
@@ -59,7 +59,7 @@ namespace MicroORMSharp
             }
         }
 
-        public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             if (entities == null)
             {
@@ -85,7 +85,7 @@ namespace MicroORMSharp
 
                         DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
-                        await bulkCopy.WriteToServerAsync(table);
+                        await bulkCopy.WriteToServerAsync(table, cancellationToken ?? Database._defaultCancellationToken);
                     }
                 }
                 else if (db is MySqlConnection)
@@ -99,7 +99,7 @@ namespace MicroORMSharp
 
                     DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
-                    await bulkCopy.WriteToServerAsync(table);
+                    await bulkCopy.WriteToServerAsync(table, cancellationToken ?? Database._defaultCancellationToken);
                 }
             }
         }

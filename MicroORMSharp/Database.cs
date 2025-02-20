@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MicroORMSharp
@@ -24,6 +25,12 @@ namespace MicroORMSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static int _defaultCommandTimeout = 30;
 
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static CancellationToken _defaultCancellationToken = default;
+
         public static DbQuery<T> Query<T>()
         {
             return new DbQuery<T>();
@@ -31,19 +38,12 @@ namespace MicroORMSharp
 
         public static IDbConnection GetConnection()
         {
-            if (_currentConnection == null || string.IsNullOrEmpty(_currentConnection.ConnectionString))
+            if (_currentConnection == null)
             {
                 throw new Exception("No connection string set");
             }
 
-            var connectionString = _currentConnection.ConnectionString;
-
-            return _currentConnection.DatabaseType switch
-            {
-                DatabaseType.MySql => new MySqlConnection(connectionString),
-                DatabaseType.SqlServer => new SqlConnection(connectionString),
-                _ => throw new ArgumentException($"Unsupported database type connection: {_currentConnection.DatabaseType}")
-            };
+            return GetConnection(_currentConnection.Reference);
         }
 
         public static IDbConnection GetConnection(string reference)
@@ -143,6 +143,31 @@ namespace MicroORMSharp
                     _currentConnection = _connections.First();
                 }
             }
+        }
+
+        public static void SetDefaultTimeout(int timeout)
+        {
+            if (timeout < 0 || timeout > 86400)
+            {
+                throw new Exception("Query timeouts must be between 0 and 86400 seconds");
+            }
+
+            _defaultCommandTimeout = timeout;
+        }
+
+        /// <summary>
+        /// Sets the default cancellation token, if a cancellation token is passed in as a parameter it will take priority over this
+        /// </summary>
+        /// <param name="token">Cancellation Token</param>
+        /// <exception cref="Exception"></exception>
+        public static void SetDefaultCancellationToken(CancellationToken token)
+        {
+            if (token == null || token.IsCancellationRequested)
+            {
+                throw new Exception("Invalid token provided");
+            }
+
+            _defaultCancellationToken = token;
         }
     }
 }

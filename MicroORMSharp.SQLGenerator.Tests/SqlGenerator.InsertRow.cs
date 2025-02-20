@@ -55,7 +55,7 @@ namespace MicroORMSharp.SqlGenerator.Tests
 
             Assert.AreEqual(
                 query,
-                "INSERT INTO [dbo].[Customers] (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] WHERE Id = (SELECT SCOPE_IDENTITY())",
+                "INSERT INTO [dbo].[Customers] (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] WHERE Id = (SELECT SCOPE_IDENTITY());",
                 "Insert row queries do not match"
             );
         }

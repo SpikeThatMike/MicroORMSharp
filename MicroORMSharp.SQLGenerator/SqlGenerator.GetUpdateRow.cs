@@ -10,7 +10,7 @@ namespace MicroORMSharp.SqlGenerator
 {
     public partial class SqlGenerator<T> where T : IMicroORMSharp
     {
-        public SqlQuery UpdateRow(T obj)
+        public SqlQuery UpdateRow(T obj, bool returnValue = false)
         {
             var newQuery = new SqlQuery();
 
@@ -40,7 +40,13 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             newQuery.Query.Append($"UPDATE {GetFullTableName()} SET {string.Join(", ", updateColumns)} ");
-            newQuery.Query.Append($"WHERE {string.Join(" AND ", whereClause)}");
+            newQuery.Query.Append($"WHERE {string.Join(" AND ", whereClause)};");
+
+            if (returnValue)
+            {
+                var selectColumns = Properties.Select(x => (MemberInfo)x);
+                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(selectColumns))} FROM {GetFullTableName()} WHERE {string.Join(" AND ", whereClause)};");
+            }
 
             return newQuery;
         }

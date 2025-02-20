@@ -12,6 +12,7 @@ namespace MicroORMSharp
 {
     public static partial class Database
     {
+        //This needs to be refactored to use COUNT(*) instead
         public static int Count<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             if (dbQuery == null)
@@ -22,7 +23,6 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()
             IEnumerable<T> results;
             using (IDbConnection db = GetConnection())
             {
@@ -30,13 +30,14 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                    cancellationToken: dbQuery._cancellationToken
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
             }
 
             return results.Count();
         }
 
+        //This needs to be refactored to use COUNT(*) instead
         public static async Task<int> CountAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             if (dbQuery == null)
@@ -47,7 +48,6 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()
             IEnumerable<T> results;
             using (IDbConnection db = GetConnection())
             {
@@ -55,7 +55,7 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                    cancellationToken: dbQuery._cancellationToken
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
             }
 

@@ -12,7 +12,7 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void Delete<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static void Delete<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -27,13 +27,13 @@ namespace MicroORMSharp
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }
         }
 
-        public static async Task DeleteAsync<T>(this T entity, CancellationToken cancellationToken = default) where T : IMicroORMSharp
+        public static async Task DeleteAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -48,7 +48,7 @@ namespace MicroORMSharp
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
                     commandTimeout: Database._defaultCommandTimeout
                 ));
             }

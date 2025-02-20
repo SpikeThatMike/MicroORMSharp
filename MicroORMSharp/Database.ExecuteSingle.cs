@@ -29,7 +29,7 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                    cancellationToken: dbQuery._cancellationToken
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
             }
 
@@ -53,7 +53,7 @@ namespace MicroORMSharp
                    sqlQuery.ToString(),
                    parameters: sqlQuery.Parameters,
                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                   cancellationToken: dbQuery._cancellationToken
+                   cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                ));
             }
 
