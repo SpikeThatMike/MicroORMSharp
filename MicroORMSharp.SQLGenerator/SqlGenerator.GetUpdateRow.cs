@@ -25,7 +25,7 @@ namespace MicroORMSharp.SqlGenerator
             foreach (var prop in identityProps)
             {
                 var parameter = $"@p{++count}";
-                whereClause.Add($"{GetPropertyName(prop)} = {parameter}");
+                whereClause.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = {parameter}");
                 newQuery.Parameters.Add(parameter, prop.GetValue(obj));
             }
 
@@ -35,7 +35,7 @@ namespace MicroORMSharp.SqlGenerator
             {
                 var parameter = $"@p{++count}";
 
-                updateColumns.Add($"{GetPropertyName(prop)} = {parameter}");
+                updateColumns.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = {parameter}");
                 newQuery.Parameters.Add(parameter, prop.GetValue(obj));
             }
 

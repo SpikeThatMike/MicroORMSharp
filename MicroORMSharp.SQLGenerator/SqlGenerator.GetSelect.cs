@@ -67,7 +67,7 @@ namespace MicroORMSharp.SqlGenerator
             if (dbQuery._orderBy.Any())
             {
                 sqlQuery.Query.Append(" ORDER BY ");
-                sqlQuery.Query.Append(string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(x.Key)} {(x.Value ? "DESC" : "ASC")}")));
+                sqlQuery.Query.Append(string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(TableName)}.{AddBrackets(x.Key)} {(x.Value ? "DESC" : "ASC")}")));
             }
 
             //MY SQL LIMIT
@@ -88,7 +88,7 @@ namespace MicroORMSharp.SqlGenerator
                 var classColumn = member.Name;
                 var dbColumn = member.GetCustomAttribute<DbColumn>()?.Name ?? classColumn;
 
-                columns.Add($"{AddBrackets(dbColumn)} AS {AddBrackets(classColumn)}");
+                columns.Add($"{AddBrackets(TableName)}.{AddBrackets(dbColumn)} AS {AddBrackets(classColumn)}");
             }
 
             return columns;
@@ -207,16 +207,15 @@ namespace MicroORMSharp.SqlGenerator
             if (expression.Member is PropertyInfo property)
             {
                 var colName = property.GetCustomAttribute<Attributes.DbColumn>()?.Name ?? property.Name;
-                var tableName = property.DeclaringType.GetCustomAttribute<Attributes.DbTable>()?.Name;
 
                 if (left)
                 {
-                    return SqlQuery.IsSql($"{AddBrackets(tableName)}.{AddBrackets(colName)}");
+                    return SqlQuery.IsSql($"{AddBrackets(TableName)}.{AddBrackets(colName)}");
                 }
 
                 if (property.PropertyType == typeof(bool))
                 {
-                    return SqlQuery.IsSql($"{AddBrackets(tableName)}.{AddBrackets(colName)} = 1");
+                    return SqlQuery.IsSql($"{AddBrackets(TableName)}.{AddBrackets(colName)} = 1");
                 }
             }
 

@@ -13,8 +13,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "DROP TABLE `Customers`",
+                query,
                 "Drop table queries do not match"
             );
         }
@@ -28,8 +28,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "DROP TABLE [dbo].[Customers]",
+                query,
                 "Drop table queries do not match"
             );
         }

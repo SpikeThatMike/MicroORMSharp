@@ -16,8 +16,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` LIMIT 1",
                 query,
-                "SELECT `Id` AS `Id`, `Forename` AS `Forename`, `Surname` AS `Surname`, `AddressLine1` AS `AddressLine1`, `AddressLine2` AS `AddressLine2`, `AddressLine3` AS `AddressLine3`, `AddressLine4` AS `AddressLine4`, `Postalcode` AS `Postcode`, `Nullable` AS `Nullable`, `NotNullable` AS `NotNullable`, `Active` AS `Active` FROM `Customers` LIMIT 1",
                 "Take queries do not match"
             );
         }
@@ -33,8 +33,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT TOP (1) [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers]",
                 query,
-                "SELECT TOP (1) [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers]",
                 "Take queries do not match"
             );
         }
@@ -50,8 +50,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT `Customers`.`Forename` AS `Forename` FROM `Customers`",
                 query,
-                "SELECT `Forename` AS `Forename` FROM `Customers`",
                 "Select queries do not match"
             );
         }
@@ -67,8 +67,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT [Customers].[Forename] AS [Forename] FROM [dbo].[Customers]",
                 query,
-                "SELECT [Forename] AS [Forename] FROM [dbo].[Customers]",
                 "Select queries do not match"
             );
         }
@@ -84,8 +84,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` WHERE (((((`Customers`.`Forename` = @p1) AND (`Customers`.`NotNullable` > 10)) AND (`Customers`.`Nullable` IS NULL)) AND `Customers`.`Active` = 1) AND (NOT (`Customers`.`Active` = 1)))",
                 query,
-                "SELECT `Id` AS `Id`, `Forename` AS `Forename`, `Surname` AS `Surname`, `AddressLine1` AS `AddressLine1`, `AddressLine2` AS `AddressLine2`, `AddressLine3` AS `AddressLine3`, `AddressLine4` AS `AddressLine4`, `Postalcode` AS `Postcode`, `Nullable` AS `Nullable`, `NotNullable` AS `NotNullable`, `Active` AS `Active` FROM `Customers` WHERE (((((`Customers`.`Forename` = @p1) AND (`Customers`.`NotNullable` > 10)) AND (`Customers`.`Nullable` IS NULL)) AND `Customers`.`Active` = 1) AND (NOT (`Customers`.`Active` = 1)))",
                 "Where queries do not match"
             );
         }
@@ -101,8 +101,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] WHERE ((((([Customers].[Forename] = @p1) AND ([Customers].[NotNullable] > 10)) AND ([Customers].[Nullable] IS NULL)) AND [Customers].[Active] = 1) AND (NOT ([Customers].[Active] = 1)))",
                 query,
-                "SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] WHERE ((((([Customers].[Forename] = @p1) AND ([Customers].[NotNullable] > 10)) AND ([Customers].[Nullable] IS NULL)) AND [Customers].[Active] = 1) AND (NOT ([Customers].[Active] = 1)))",
                 "Where queries do not match"
             );
         }
@@ -119,8 +119,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` ORDER BY `Customers`.`Forename` ASC, `Customers`.`Surname` DESC",
                 query,
-                "SELECT `Id` AS `Id`, `Forename` AS `Forename`, `Surname` AS `Surname`, `AddressLine1` AS `AddressLine1`, `AddressLine2` AS `AddressLine2`, `AddressLine3` AS `AddressLine3`, `AddressLine4` AS `AddressLine4`, `Postalcode` AS `Postcode`, `Nullable` AS `Nullable`, `NotNullable` AS `NotNullable`, `Active` AS `Active` FROM `Customers` ORDER BY `Forename` ASC, `Surname` DESC",
                 "Order by queries do not match"
             );
         }
@@ -137,8 +137,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = sqlQuery.ToString();
 
             Assert.AreEqual(
+                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] ORDER BY [Customers].[Forename] ASC, [Customers].[Surname] DESC",
                 query,
-                "SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] ORDER BY [Forename] ASC, [Surname] DESC",
                 "Order by queries do not match"
             );
         }

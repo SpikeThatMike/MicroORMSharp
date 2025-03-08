@@ -26,8 +26,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "DELETE FROM `Customers` WHERE Id = @p1",
+                query,
                 "Delete row queries do not match"
             );
         }
@@ -54,8 +54,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "DELETE FROM [dbo].[Customers] WHERE Id = @p1",
+                query,
                 "Delete row queries do not match"
             );
         }

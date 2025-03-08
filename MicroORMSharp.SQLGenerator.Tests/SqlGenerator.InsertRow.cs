@@ -26,8 +26,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "INSERT INTO `Customers` (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` WHERE `Customers`.`Id` = (SELECT LAST_INSERT_ID());",
                 query,
-                "INSERT INTO `Customers` (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT `Id` AS `Id`, `Forename` AS `Forename`, `Surname` AS `Surname`, `AddressLine1` AS `AddressLine1`, `AddressLine2` AS `AddressLine2`, `AddressLine3` AS `AddressLine3`, `AddressLine4` AS `AddressLine4`, `Postalcode` AS `Postcode`, `Nullable` AS `Nullable`, `NotNullable` AS `NotNullable`, `Active` AS `Active` FROM `Customers` WHERE Id = (SELECT LAST_INSERT_ID());",
                 "Insert row queries do not match"
             );
         }
@@ -54,8 +54,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "INSERT INTO [dbo].[Customers] (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] WHERE [Customers].[Id] = (SELECT SCOPE_IDENTITY());",
                 query,
-                "INSERT INTO [dbo].[Customers] (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Nullable, NotNullable, Active) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10); SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] WHERE Id = (SELECT SCOPE_IDENTITY());",
                 "Insert row queries do not match"
             );
         }

@@ -13,8 +13,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "TRUNCATE TABLE `Customers`",
+                query,
                 "Truncate table queries do not match"
             );
         }
@@ -28,8 +28,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
-                query,
                 "TRUNCATE TABLE [dbo].[Customers]",
+                query,
                 "Truncate table queries do not match"
             );
         }

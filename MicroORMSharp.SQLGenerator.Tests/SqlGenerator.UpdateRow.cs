@@ -26,8 +26,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "UPDATE `Customers` SET `Customers`.`Forename` = @p2, `Customers`.`Surname` = @p3, `Customers`.`AddressLine1` = @p4, `Customers`.`AddressLine2` = @p5, `Customers`.`AddressLine3` = @p6, `Customers`.`AddressLine4` = @p7, `Customers`.`Postalcode` = @p8, `Customers`.`Nullable` = @p9, `Customers`.`NotNullable` = @p10, `Customers`.`Active` = @p11 WHERE `Customers`.`Id` = @p1;",
                 query,
-                "UPDATE `Customers` SET Forename = @p2, Surname = @p3, AddressLine1 = @p4, AddressLine2 = @p5, AddressLine3 = @p6, AddressLine4 = @p7, Postalcode = @p8, Nullable = @p9, NotNullable = @p10, Active = @p11 WHERE Id = @p1;",
                 "Update row queries do not match"
             );
         }
@@ -54,8 +54,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "UPDATE [dbo].[Customers] SET [Customers].[Forename] = @p2, [Customers].[Surname] = @p3, [Customers].[AddressLine1] = @p4, [Customers].[AddressLine2] = @p5, [Customers].[AddressLine3] = @p6, [Customers].[AddressLine4] = @p7, [Customers].[Postalcode] = @p8, [Customers].[Nullable] = @p9, [Customers].[NotNullable] = @p10, [Customers].[Active] = @p11 WHERE [Customers].[Id] = @p1;",
                 query,
-                "UPDATE [dbo].[Customers] SET Forename = @p2, Surname = @p3, AddressLine1 = @p4, AddressLine2 = @p5, AddressLine3 = @p6, AddressLine4 = @p7, Postalcode = @p8, Nullable = @p9, NotNullable = @p10, Active = @p11 WHERE Id = @p1;",
                 "Update row queries do not match"
             );
         }
@@ -82,8 +82,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "UPDATE `Customers` SET `Customers`.`Forename` = @p2, `Customers`.`Surname` = @p3, `Customers`.`AddressLine1` = @p4, `Customers`.`AddressLine2` = @p5, `Customers`.`AddressLine3` = @p6, `Customers`.`AddressLine4` = @p7, `Customers`.`Postalcode` = @p8, `Customers`.`Nullable` = @p9, `Customers`.`NotNullable` = @p10, `Customers`.`Active` = @p11 WHERE `Customers`.`Id` = @p1; SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` WHERE `Customers`.`Id` = @p1;",
                 query,
-                "UPDATE `Customers` SET Forename = @p2, Surname = @p3, AddressLine1 = @p4, AddressLine2 = @p5, AddressLine3 = @p6, AddressLine4 = @p7, Postalcode = @p8, Nullable = @p9, NotNullable = @p10, Active = @p11 WHERE Id = @p1; SELECT `Id` AS `Id`, `Forename` AS `Forename`, `Surname` AS `Surname`, `AddressLine1` AS `AddressLine1`, `AddressLine2` AS `AddressLine2`, `AddressLine3` AS `AddressLine3`, `AddressLine4` AS `AddressLine4`, `Postalcode` AS `Postcode`, `Nullable` AS `Nullable`, `NotNullable` AS `NotNullable`, `Active` AS `Active` FROM `Customers` WHERE Id = @p1;",
                 "Update row queries do not match"
             );
         }
@@ -110,8 +110,8 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var query = createTable.ToString();
 
             Assert.AreEqual(
+                "UPDATE [dbo].[Customers] SET [Customers].[Forename] = @p2, [Customers].[Surname] = @p3, [Customers].[AddressLine1] = @p4, [Customers].[AddressLine2] = @p5, [Customers].[AddressLine3] = @p6, [Customers].[AddressLine4] = @p7, [Customers].[Postalcode] = @p8, [Customers].[Nullable] = @p9, [Customers].[NotNullable] = @p10, [Customers].[Active] = @p11 WHERE [Customers].[Id] = @p1; SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] WHERE [Customers].[Id] = @p1;",
                 query,
-                "UPDATE [dbo].[Customers] SET Forename = @p2, Surname = @p3, AddressLine1 = @p4, AddressLine2 = @p5, AddressLine3 = @p6, AddressLine4 = @p7, Postalcode = @p8, Nullable = @p9, NotNullable = @p10, Active = @p11 WHERE Id = @p1; SELECT [Id] AS [Id], [Forename] AS [Forename], [Surname] AS [Surname], [AddressLine1] AS [AddressLine1], [AddressLine2] AS [AddressLine2], [AddressLine3] AS [AddressLine3], [AddressLine4] AS [AddressLine4], [Postalcode] AS [Postcode], [Nullable] AS [Nullable], [NotNullable] AS [NotNullable], [Active] AS [Active] FROM [dbo].[Customers] WHERE Id = @p1;",
                 "Update row queries do not match"
             );
         }

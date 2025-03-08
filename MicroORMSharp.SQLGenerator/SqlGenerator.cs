@@ -20,7 +20,6 @@ namespace MicroORMSharp.SqlGenerator
 
         public IEnumerable<PropertyInfo> Properties { get; protected set; } = new List<PropertyInfo>();
         public IEnumerable<PropertyInfo> IgnoreProperties { get; protected set; } = new List<PropertyInfo>();
-
         private string _defaultSchema { get; set; } = "dbo";
 
         public SqlGenerator(DatabaseType databaseType)
@@ -61,7 +60,7 @@ namespace MicroORMSharp.SqlGenerator
                 _propertyCache.TryAdd(type, AllProperties);
             }
 
-            Properties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() == null);
+            Properties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() == null && x.GetCustomAttribute<DBJoin>() == null);
             IgnoreProperties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() != null);
         }
 
