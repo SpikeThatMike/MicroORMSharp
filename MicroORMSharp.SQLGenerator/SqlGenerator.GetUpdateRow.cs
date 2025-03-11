@@ -45,7 +45,7 @@ namespace MicroORMSharp.SqlGenerator
             if (returnValue)
             {
                 var selectColumns = Properties.Select(x => (MemberInfo)x);
-                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(selectColumns))} FROM {GetFullTableName()} WHERE {string.Join(" AND ", whereClause)};");
+                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(TableName, selectColumns))} FROM {GetFullTableName()} WHERE {string.Join(" AND ", whereClause)};");
             }
 
             return newQuery;

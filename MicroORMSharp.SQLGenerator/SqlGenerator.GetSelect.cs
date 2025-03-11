@@ -52,8 +52,36 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             //Select rows
-            var selectColumns = dbQuery._selectClause != null && dbQuery._selectClause.Any() ? dbQuery._selectClause : Properties.Select(x => (MemberInfo)x);
-            sqlQuery.Query.Append($" {string.Join(", ", GenerateSelectClause(selectColumns))} FROM {GetFullTableName()}");
+            var selectColumns = dbQuery._selectClause != null && dbQuery._selectClause.Any() ? dbQuery._selectClause.ToList() : Properties.Select(x => (MemberInfo)x).ToList();
+            if (selectColumns.Any())
+            {
+                sqlQuery.Query.Append($" {string.Join(", ", GenerateSelectClause(TableName, selectColumns))}");
+            }
+
+            if (JoinProperties.Any())
+            {
+                foreach (var join in JoinProperties)
+                {
+                    var dbJoin = join.GetCustomAttribute<DBJoin>();
+                    var joinColumns = dbJoin.Type
+                        .GetProperties()
+                        .Select(x => (MemberInfo)x);
+                    var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
+
+                    if (joinColumns.Any())
+                    {
+                        sqlQuery.Query.Append($", {string.Join(", ", GenerateSelectClause(dbTable.Name, joinColumns))}");
+                    }
+                }
+            }
+
+            sqlQuery.Query.Append($" FROM {GetFullTableName()}");
+
+            if (JoinProperties.Any())
+            {
+                var joins = GenerateJoins(JoinProperties);
+                sqlQuery.Query.Append($" {joins.Query.ToString()}");
+            }
 
             //Where clause
             if (dbQuery._whereClause != null)
@@ -79,7 +107,7 @@ namespace MicroORMSharp.SqlGenerator
             return sqlQuery;
         }
 
-        private IEnumerable<string> GenerateSelectClause(IEnumerable<MemberInfo> memberInfo)
+        private IEnumerable<string> GenerateSelectClause(string tableName, IEnumerable<MemberInfo> memberInfo)
         {
             List<string> columns = new List<string>();
 
@@ -88,10 +116,28 @@ namespace MicroORMSharp.SqlGenerator
                 var classColumn = member.Name;
                 var dbColumn = member.GetCustomAttribute<DbColumn>()?.Name ?? classColumn;
 
-                columns.Add($"{AddBrackets(TableName)}.{AddBrackets(dbColumn)} AS {AddBrackets(classColumn)}");
+                columns.Add($"{AddBrackets(tableName)}.{AddBrackets(dbColumn)} AS {AddBrackets(classColumn)}");
             }
 
             return columns;
+        }
+
+        private SqlQuery GenerateJoins(IEnumerable<MemberInfo> joins)
+        {
+            SqlQuery sqlQuery = new SqlQuery();
+
+            foreach(var join in joins)
+            {
+                var dbJoin = join.GetCustomAttribute<DBJoin>();
+                var joinColumns = dbJoin.Type
+                    .GetProperties()
+                    .Select(x => (MemberInfo)x);
+                var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
+
+                sqlQuery.Query.Append($" INNER JOIN {GetFullTableName(dbTable)} ON {AddBrackets(dbTable.Name)}.{AddBrackets(dbJoin.OtherKey)} = {AddBrackets(TableName)}.{AddBrackets(dbJoin.TableKey)}");
+            }
+
+            return sqlQuery;
         }
 
         private SqlQuery GenerateWhereClause(Expression expression)

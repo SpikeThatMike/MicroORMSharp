@@ -20,6 +20,7 @@ namespace MicroORMSharp.SqlGenerator
 
         public IEnumerable<PropertyInfo> Properties { get; protected set; } = new List<PropertyInfo>();
         public IEnumerable<PropertyInfo> IgnoreProperties { get; protected set; } = new List<PropertyInfo>();
+        public IEnumerable<PropertyInfo> JoinProperties { get; protected set; } = new List<PropertyInfo>();
         private string _defaultSchema { get; set; } = "dbo";
 
         public SqlGenerator(DatabaseType databaseType)
@@ -62,6 +63,7 @@ namespace MicroORMSharp.SqlGenerator
 
             Properties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() == null && x.GetCustomAttribute<DBJoin>() == null);
             IgnoreProperties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() != null);
+            JoinProperties = AllProperties.Where(x => x.GetCustomAttribute<DBJoin>() != null);
         }
 
         public string GetFullTableName()
@@ -71,6 +73,18 @@ namespace MicroORMSharp.SqlGenerator
                 TableDatabase,
                 DatabaseType == DatabaseType.SqlServer ? TableSchema : null,
                 TableName
+            }.Where(x => !string.IsNullOrEmpty(x));
+
+            return string.Join(".", sb.Select(AddBrackets));
+        }
+
+        public string GetFullTableName(DbTable dbTable)
+        {
+            IEnumerable<string> sb = new List<string>()
+            {
+                dbTable.Database,
+                DatabaseType == DatabaseType.SqlServer ? dbTable.Schema : null,
+                dbTable.Name
             }.Where(x => !string.IsNullOrEmpty(x));
 
             return string.Join(".", sb.Select(AddBrackets));

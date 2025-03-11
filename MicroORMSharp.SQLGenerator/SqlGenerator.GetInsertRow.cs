@@ -28,7 +28,7 @@ namespace MicroORMSharp.SqlGenerator
             if (returnValue)
             {
                 var selectColumns = Properties.Select(x => (MemberInfo)x);
-                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(selectColumns))} FROM {GetFullTableName()} WHERE {AddBrackets(TableName)}.{AddBrackets("Id")} = (SELECT {GetLastInsertMethod()});");
+                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(TableName, selectColumns))} FROM {GetFullTableName()} WHERE {AddBrackets(TableName)}.{AddBrackets("Id")} = (SELECT {GetLastInsertMethod()});");
             }
 
             return newQuery;
