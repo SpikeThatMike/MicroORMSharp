@@ -1,6 +1,7 @@
 ﻿using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
+using MicroORMSharp.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,18 @@ namespace MicroORMSharp.Tests
 
         [TestMethod]
         public async Task ExecuteSingle_MySql()
+        {
+
+        }
+
+        [TestMethod]
+        public async Task ExecuteJoin_MySql()
+        {
+            await Database.Query<CustomersJoined>().ExecuteAsync();
+        }
+
+        [TestMethod]
+        public async Task ExecuteJoinSingle_MySql()
         {
 
         }

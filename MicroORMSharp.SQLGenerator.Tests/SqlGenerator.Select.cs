@@ -142,5 +142,22 @@ namespace MicroORMSharp.SqlGenerator.Tests
                 "Order by queries do not match"
             );
         }
+
+        [TestMethod]
+        public void SelectJoin_MySql()
+        {
+            var sqlGenerator = new SqlGenerator<CustomersJoined>(DatabaseType.MySql);
+
+            DbQuery<CustomersJoined> dbQuery = new DbQuery<CustomersJoined>();
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            var query = sqlQuery.ToString();
+
+            Assert.AreEqual(
+                "SELECT `Customer`.`Id` AS `Id`, `Customer`.`Name` AS `Name`, `Customer`.`Email` AS `Email`, `Customer`.`CreatedDate` AS `CreatedDate`, `Order`.`Id` AS `Id`, `Order`.`CustomerId` AS `CustomerId`, `Order`.`OrderDate` AS `OrderDate`, `Order`.`TotalAmount` AS `TotalAmount`, `Order`.`Status` AS `Status` FROM `Customer`  INNER JOIN `Order` ON `Order`.`CustomerId` = `Customer`.`Id`",
+                query,
+                "Select queries do not match"
+            );
+        }
     }
 }

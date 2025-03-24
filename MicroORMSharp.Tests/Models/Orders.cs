@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.SqlGenerator.Tests.Models
+namespace MicroORMSharp.Tests.Models
 {
     [DbTable("Order")]
     public class Order : IMicroORMSharp
