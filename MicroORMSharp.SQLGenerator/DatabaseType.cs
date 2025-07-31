@@ -7,6 +7,7 @@ namespace MicroORMSharp.SqlGenerator
     public enum DatabaseType
     {
         SqlServer,
-        MySql
+        MySql,
+        None
     }
 }

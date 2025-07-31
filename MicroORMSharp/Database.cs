@@ -31,7 +31,21 @@ namespace MicroORMSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static CancellationToken _defaultCancellationToken = default;
 
-        public static DbQuery<T> Query<T>()
+        private static DapperWrapper _dapperWrapper = null;
+        public static DapperWrapper Dapper
+        {
+            get
+            {
+                _dapperWrapper ??= new DapperWrapper();
+                return _dapperWrapper;
+            }
+            private set
+            {
+                _dapperWrapper = value;
+            }
+        }
+
+    public static DbQuery<T> Query<T>()
         {
             return new DbQuery<T>();
         }
@@ -61,6 +75,20 @@ namespace MicroORMSharp
                 DatabaseType.SqlServer => new SqlConnection(connection.ConnectionString),
                 _ => throw new ArgumentException($"Unsupported database type connection: {connection.DatabaseType}")
             };
+        }
+
+        public static T WithConnection<T>(Func<IDbConnection, T> getData)
+        {
+            using var db = GetConnection();
+            db.Open();
+            return getData(db);
+        }
+
+        public static async Task<T> WithConnectionAsync<T>(Func<IDbConnection, Task<T>> getData)
+        {
+            using var db = GetConnection();
+            db.Open();
+            return await getData(db);
         }
 
         public static DatabaseType GetDatabaseType()

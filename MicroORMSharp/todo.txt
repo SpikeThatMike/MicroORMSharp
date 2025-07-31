@@ -1,0 +1,3 @@
+﻿Complete tests for DapperWraapper (MySql)
+Create cache system for SqlGenerator so it doesn't need to fetch the properties every time
+Create tests for Database class / ensure joins work fine
