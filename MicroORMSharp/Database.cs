@@ -45,9 +45,27 @@ namespace MicroORMSharp
             }
         }
 
-    public static DbQuery<T> Query<T>()
+        public static DbQuery<T> Query<T>()
         {
             return new DbQuery<T>();
+        }
+
+        public static IDbTransaction BeginTransaction()
+        {
+            if (_currentConnection == null)
+            {
+                throw new Exception("No connection string set");
+            }
+
+            return BeginTransaction(_currentConnection.Reference);
+        }
+
+        public static IDbTransaction BeginTransaction(string reference)
+        {
+            var connection = GetConnection(reference);
+            connection.Open();
+
+            return connection.BeginTransaction();
         }
 
         public static IDbConnection GetConnection()

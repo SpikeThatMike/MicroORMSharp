@@ -12,7 +12,12 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static T Update<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static T Update<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -20,7 +25,7 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
-            var sqlQuery = sqlGenerator.UpdateRow(entity, false);
+            var sqlQuery = sqlGenerator.UpdateRow(entity, true);
 
             using (IDbConnection db = Database.GetConnection())
             {
@@ -28,34 +33,20 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
             }
 
             return entity;
         }
 
-        public static void UpdateSelect<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
-            var sqlQuery = sqlGenerator.UpdateRow(entity, true);
-            using (IDbConnection db = Database.GetConnection())
-            {
-                db.Execute(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
-                ));
-            }
-        }
-
-        public static async Task<T> UpdateAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static void UpdateOnly<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -67,18 +58,22 @@ namespace MicroORMSharp
 
             using (IDbConnection db = Database.GetConnection())
             {
-                entity = await db.QueryFirstAsync<T>(new CommandDefinition(
+                db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
             }
-
-            return entity;
         }
 
-        public static async void UpdateSelectAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static async Task<T> UpdateAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             if (entity == null)
             {
@@ -87,13 +82,43 @@ namespace MicroORMSharp
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.UpdateRow(entity, true);
+
+            using (IDbConnection db = Database.GetConnection())
+            {
+                entity = await db.QueryFirstAsync<T>(new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
+                ));
+            } 
+
+            return entity;
+        }
+
+        public static async Task UpdateOnlyAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            var sqlQuery = sqlGenerator.UpdateRow(entity, false);
             using (IDbConnection db = Database.GetConnection())
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
             }
         }

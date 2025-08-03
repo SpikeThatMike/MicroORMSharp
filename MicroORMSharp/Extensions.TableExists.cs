@@ -13,13 +13,13 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static bool TableExists<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static bool TableExists<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
-            //if (!Database.GetTableExtensionsOption())
-            //{
-            //    throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
-            //}
-
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 
@@ -30,7 +30,8 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
             }
 
@@ -38,13 +39,13 @@ namespace MicroORMSharp
             return exists;
         }
 
-        public static async Task<bool> TableExistsAsync<T>(this T entity, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static async Task<bool> TableExistsAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
-            //if (!Database.GetTableExtensionsOption())
-            //{
-            //    throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
-            //}
-
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 
@@ -55,27 +56,38 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
             }
 
             return exists;
         }
 
-        public static bool TableExists<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static bool TableExists<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return TableExists(entity, cancellationToken);
+            return TableExists(entity, cancellationToken, commandTimeout, dbTransaction);
         }
 
-        public static async Task<bool> TableExistsAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static async Task<bool> TableExistsAsync<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken = null,
+            int? commandTimeout = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return await TableExistsAsync(entity, cancellationToken);
+            return await TableExistsAsync(entity, cancellationToken, commandTimeout, dbTransaction);
         }
     }
 }
