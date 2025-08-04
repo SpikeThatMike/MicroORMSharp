@@ -1,27 +1,31 @@
 ﻿using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
+using MicroORMSharp.SqlGenerator.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace MicroORMSharp.SqlGenerator
 {
     public partial class SqlGenerator<T> where T : IMicroORMSharp
     {
-        private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertyCache = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
+        private static readonly ConcurrentDictionary<Type, SqlMetadata> _tableCache = new ConcurrentDictionary<Type, SqlMetadata>();
+
         public DatabaseType DatabaseType { get; protected set; }
         public string TableDatabase { get; protected set; }
         public string TableSchema { get; protected set; }
         public string TableName { get; protected set; }
-        public IEnumerable<PropertyInfo> AllProperties { get; protected set; } = new List<PropertyInfo>();
+        public List<PropertyInfo> AllProperties { get; protected set; } = new List<PropertyInfo>();
 
-        public IEnumerable<PropertyInfo> Properties { get; protected set; } = new List<PropertyInfo>();
-        public IEnumerable<PropertyInfo> IgnoreProperties { get; protected set; } = new List<PropertyInfo>();
-        public IEnumerable<PropertyInfo> JoinProperties { get; protected set; } = new List<PropertyInfo>();
+        public List<PropertyInfo> Properties { get; protected set; } = new List<PropertyInfo>();
+        public List<PropertyInfo> IgnoreProperties { get; protected set; } = new List<PropertyInfo>();
+        public List<PropertyInfo> JoinProperties { get; protected set; } = new List<PropertyInfo>();
         private string _defaultSchema { get; set; } = "dbo";
+
+        public string FullTableNameSqlServer { get; set; }
+        public string FullTableNameMySql { get; set; }
 
         public SqlGenerator(DatabaseType databaseType)
         {
@@ -38,66 +42,117 @@ namespace MicroORMSharp.SqlGenerator
 
         private void Init()
         {
-            var type = typeof(T);
-            var typeInfo = type.GetTypeInfo();
-            var dbTable = typeInfo.GetCustomAttribute<DbTable>();
+            Type? type = typeof(T)
+                ?? throw new Exception($"{nameof(type)} Type cannot be null");
 
-            if (dbTable == null)
+            if (_tableCache.TryGetValue(type, out SqlMetadata metadata))
             {
-                throw new Exception("Entity must have a DbTable attribute");
+                TableDatabase = metadata.TableDatabase;
+                TableSchema = metadata.TableSchema;
+                TableName = metadata.TableName;
+
+                AllProperties = metadata.AllProperties;
+                Properties = metadata.Properties;
+                IgnoreProperties = metadata.IgnoreProperties;
+                JoinProperties = metadata.JoinProperties;
+
+
+                FullTableNameSqlServer = metadata.FullTableNameSqlServer;
+                FullTableNameMySql = metadata.FullTableNameMySql;
+
+                return;
             }
 
-            TableDatabase = dbTable.Database ?? "";
+            var dbTable = type.GetCustomAttribute<DbTable>()
+                ?? throw new Exception("Entity must have a DbTable attribute");
+
+            TableDatabase = dbTable.Database ?? string.Empty;
             TableSchema = dbTable.Schema ?? _defaultSchema;
-            TableName = dbTable.Name; //Cannot be null
+            TableName = dbTable.Name;
 
-            if (_propertyCache.TryGetValue(type, out IEnumerable<PropertyInfo> properties))
+            FullTableNameSqlServer = FormatFullTableName(TableDatabase, TableSchema, TableName, DatabaseType.SqlServer);
+            FullTableNameMySql = FormatFullTableName(TableDatabase, string.Empty, TableName, DatabaseType.MySql);
+
+            AllProperties = type.GetProperties().ToList();
+
+            var dbIgnore = typeof(DbIgnore);
+            var dbJoin = typeof(DBJoin);
+
+            foreach (var prop in AllProperties)
             {
-                AllProperties = properties.ToList();
-            }
-            else
-            {
-                AllProperties = type.GetProperties();
-                _propertyCache.TryAdd(type, AllProperties);
+                bool isIgnore = prop.IsDefined(dbIgnore, true);
+                bool isJoin = prop.IsDefined(dbJoin, true);
+
+                if (isIgnore) IgnoreProperties.Add(prop);
+                else if (isJoin) JoinProperties.Add(prop);
+                else Properties.Add(prop);
             }
 
-            Properties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() == null && x.GetCustomAttribute<DBJoin>() == null);
-            IgnoreProperties = AllProperties.Where(x => x.GetCustomAttribute<DbIgnore>() != null);
-            JoinProperties = AllProperties.Where(x => x.GetCustomAttribute<DBJoin>() != null);
+            _tableCache.TryAdd(type, new SqlMetadata
+            {
+                TableDatabase = TableDatabase,
+                TableSchema = TableSchema,
+                TableName = TableName,
+
+                AllProperties = AllProperties,
+                Properties = Properties,
+                IgnoreProperties = IgnoreProperties,
+                JoinProperties = JoinProperties,
+
+                FullTableNameSqlServer = FullTableNameSqlServer,
+                FullTableNameMySql = FullTableNameMySql
+            });
         }
 
         public string GetFullTableName()
         {
-            IEnumerable<string> sb = new List<string>()
+            return DatabaseType switch
             {
-                TableDatabase,
-                DatabaseType == DatabaseType.SqlServer ? TableSchema : null,
-                TableName
-            }.Where(x => !string.IsNullOrEmpty(x));
-
-            return string.Join(".", sb.Select(AddBrackets));
+                DatabaseType.SqlServer => FullTableNameSqlServer,
+                DatabaseType.MySql => FullTableNameMySql,
+                _ => FormatFullTableName(TableDatabase, TableSchema, TableName, DatabaseType)
+            };
         }
 
         public string GetFullTableName(DbTable dbTable)
         {
-            IEnumerable<string> sb = new List<string>()
-            {
-                dbTable.Database,
-                DatabaseType == DatabaseType.SqlServer ? dbTable.Schema : null,
-                dbTable.Name
-            }.Where(x => !string.IsNullOrEmpty(x));
+            var success = _tableCache.TryGetValue(dbTable.GetType(), out SqlMetadata metaData);
 
-            return string.Join(".", sb.Select(AddBrackets));
+            if (success)
+            {
+                return DatabaseType switch
+                {
+                    DatabaseType.SqlServer => metaData.FullTableNameSqlServer,
+                    DatabaseType.MySql => metaData.FullTableNameMySql,
+                    _ => FormatFullTableName(TableDatabase, TableSchema, TableName, DatabaseType)
+                };
+            }
+
+            return FormatFullTableName(dbTable.Database, dbTable.Schema, dbTable.Name, DatabaseType);
         }
 
-        private string AddBrackets(string identifier)
+        private string AddBrackets(string identifier, DatabaseType? databaseType = null)
         {
-            if (DatabaseType == DatabaseType.SqlServer)
+            databaseType ??= DatabaseType;
+
+            if (databaseType == DatabaseType.SqlServer)
                 return $"[{identifier}]";
-            else if (DatabaseType == DatabaseType.MySql)
+            else if (databaseType == DatabaseType.MySql)
                 return $"`{identifier}`";
 
             return identifier;
+        }
+
+        private string FormatFullTableName(string database, string schema, string table, DatabaseType dbType)
+        {
+            var parts = new List<string>
+            {
+                database,
+                dbType == DatabaseType.SqlServer ? schema : string.Empty,
+                table
+            }.Where(x => !string.IsNullOrEmpty(x));
+
+            return string.Join(".", parts.Select(x => AddBrackets(x, dbType)));
         }
     }
 }

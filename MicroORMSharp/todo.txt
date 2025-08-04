@@ -1,7 +1,9 @@
 ﻿DONE: Timeouts support on class extensions
 DONE: Transaction support on class extensions
 
+IN PROGRESS: Create cache system for SqlGenerator so it doesn't need to fetch the properties every time
+-- Continue to make improvements on the cache system
+
 TODO: Complete tests for DapperWraapper (MySql)
-TODO: Create cache system for SqlGenerator so it doesn't need to fetch the properties every time
 TODO: Create tests for Database class / ensure joins work fine
 
