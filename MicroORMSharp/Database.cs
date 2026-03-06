@@ -191,6 +191,11 @@ namespace MicroORMSharp
             }
         }
 
+        public static IEnumerable<ServerConnections> GetAllConnections()
+        {
+            return _connections;
+        }
+
         public static void SetDefaultTimeout(int timeout)
         {
             if (timeout < 0 || timeout > 86400)

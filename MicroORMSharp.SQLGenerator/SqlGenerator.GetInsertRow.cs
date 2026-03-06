@@ -23,12 +23,15 @@ namespace MicroORMSharp.SqlGenerator
                 newQuery.Parameters.Add($"@p{++count}", prop.GetValue(obj));
             }
 
+            var identityProp = AllProperties.FirstOrDefault(x => x.GetCustomAttribute<DbIdentity>() != null)
+                ?? throw new Exception("No identity column found. Please ensure that one property is marked with the DbIdentity attribute.");
+            
             newQuery.Query.Append($"INSERT INTO {GetFullTableName()} ({string.Join(", ", columnNames)}) ");
             newQuery.Query.Append($"VALUES ({string.Join(", ", newQuery.Parameters.Select(x => x.Key))});");
             if (returnValue)
             {
                 var selectColumns = Properties.Select(x => (MemberInfo)x);
-                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(TableName, selectColumns))} FROM {GetFullTableName()} WHERE {AddBrackets(TableName)}.{AddBrackets("Id")} = (SELECT {GetLastInsertMethod()});");
+                newQuery.Query.Append($" SELECT {string.Join(", ", GenerateSelectClause(TableName, selectColumns))} FROM {GetFullTableName()} WHERE {AddBrackets(TableName)}.{AddBrackets(GetPropertyName(identityProp))} = (SELECT {GetLastInsertMethod()});");
             }
 
             return newQuery;

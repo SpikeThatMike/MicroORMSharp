@@ -15,13 +15,18 @@ namespace MicroORMSharp.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            //Add connection to MySql DB - Test local db
-            Database.AddConnectionString(
-                DatabaseType.MySql,
-                "MySql",
-                "Server=localhost;Database=test;User ID=root;Password=admin;Port=3306;AllowLoadLocalInfile=true",
-                allowTableExtensions: true
-            );
+            string reference = "MySql";
+
+            if (Database.GetAllConnections().FirstOrDefault(x => x.Reference == reference) is null)
+            {
+                //Add connection to MySql DB - Test local db
+                Database.AddConnectionString(
+                    DatabaseType.MySql,
+                    reference,
+                    "Server=localhost;Database=test;User ID=root;Password=admin;Port=3306;AllowLoadLocalInfile=true",
+                    allowTableExtensions: true
+                );
+            }
         }
     }
 }
