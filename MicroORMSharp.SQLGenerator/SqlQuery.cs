@@ -43,7 +43,7 @@ namespace MicroORMSharp.SqlGenerator
 
         public static SqlQuery IsParameter(int count, object value)
         {
-            return new SqlQuery() { Query = new StringBuilder($"@p{count}"), Parameters = new Dictionary<string, object> { { count.ToString(), value } } };
+            return new SqlQuery() { Query = new StringBuilder($"@p{count}"), Parameters = new Dictionary<string, object> { { $"p{count}", value } } };
         }
 
         public static SqlQuery IsCollection(ref int countStart, IEnumerable values)
@@ -52,7 +52,7 @@ namespace MicroORMSharp.SqlGenerator
             var sql = new StringBuilder("(");
             foreach (var value in values)
             {
-                parameters.Add(countStart.ToString(), value);
+                parameters.Add($"@p{countStart}", value);
                 sql.Append($"@p{countStart},");
                 countStart++;
             }
