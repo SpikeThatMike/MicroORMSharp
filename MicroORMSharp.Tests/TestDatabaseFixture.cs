@@ -76,12 +76,6 @@ namespace MicroORMSharp.Tests
             }
         }
 
-        public static async Task DropTableIfExistsAsync(Customers customers)
-        {
-            if (await customers.TableExistsAsync())
-                await customers.DropTableAsync();
-        }
-
         public static async Task AssertTableDroppedAsync(Customers customers)
         {
             await customers.DropTableAsync();

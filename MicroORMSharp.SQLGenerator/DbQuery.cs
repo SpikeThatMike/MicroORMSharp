@@ -62,12 +62,7 @@ namespace MicroORMSharp.SqlGenerator
 
         public static DbQuery<T> Where<T>(this DbQuery<T> dbQuery, Expression<Func<T, bool>> filter)
         {
-            if (filter == null)
-            {
-                throw new ArgumentNullException("Where clause was null");
-            }
-
-            dbQuery._whereClause = filter;
+            dbQuery._whereClause = filter ?? throw new ArgumentNullException("Where clause was null");
 
             return dbQuery;
         }
