@@ -16,6 +16,7 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -27,24 +28,20 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
-            {
-                entity = db.QueryFirst<T>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
-                    transaction: dbTransaction
-                ));
-            }
-
-            return entity;
+            return WithConnection(db => db.QueryFirst<T>(new CommandDefinition(
+                sqlQuery.ToString(),
+                parameters: sqlQuery.Parameters,
+                cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                transaction: dbTransaction
+            )), dbConnection, dbTransaction);
         }
 
         public static void InsertOnly<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -55,7 +52,8 @@ namespace MicroORMSharp
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity, false);
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+
+            WithConnection(db =>
             {
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -64,13 +62,14 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static async Task<T> InsertAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -82,24 +81,20 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
-            {
-                entity = await db.QueryFirstAsync<T>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
-                    transaction: dbTransaction
-                ));
-            }
-
-            return entity;
+            return await WithConnectionAsync(db => db.QueryFirstAsync<T>(new CommandDefinition(
+                sqlQuery.ToString(),
+                parameters: sqlQuery.Parameters,
+                cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                transaction: dbTransaction
+            )), dbConnection, dbTransaction);
         }
 
         public static async void InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -110,7 +105,8 @@ namespace MicroORMSharp
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity, false);
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+
+            await WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -119,7 +115,7 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
     }
 }

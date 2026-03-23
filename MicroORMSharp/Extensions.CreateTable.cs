@@ -17,6 +17,7 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -28,7 +29,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.CreateTable();
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            WithConnection(db =>
             {
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -37,14 +38,15 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static async Task CreateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
-            IDbTransaction? dbTransaction = null  
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!Database.GetTableExtensionsOption())
@@ -55,21 +57,23 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.CreateTable();
 
-            using (IDbConnection db = Database.GetConnection())
+            await WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static void CreateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -80,6 +84,7 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
+                dbConnection,
                 dbTransaction
             );
         }
@@ -88,6 +93,7 @@ namespace MicroORMSharp
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -98,6 +104,7 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
+                dbConnection,
                 dbTransaction
             );
         }

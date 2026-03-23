@@ -17,6 +17,7 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -28,7 +29,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            WithConnection(db =>
             {
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -37,13 +38,14 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static async Task DropTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -55,7 +57,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DropTable();
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            await WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -64,13 +66,14 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static void DropTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -81,6 +84,7 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
+                dbConnection,
                 dbTransaction
             );
         }
@@ -89,6 +93,7 @@ namespace MicroORMSharp
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -99,6 +104,7 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
+                dbConnection,
                 dbTransaction
             );
         }

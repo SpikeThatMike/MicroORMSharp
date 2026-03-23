@@ -17,77 +17,68 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 
-            bool exists = false;
-            using (IDbConnection db = Database.GetConnection())
-            {
-                exists = db.QueryFirstOrDefault<bool>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
-                    transaction: dbTransaction
-                ));
-            }
-
-
-            return exists;
+            return WithConnection(db => db.QueryFirstOrDefault<bool>(new CommandDefinition(
+                sqlQuery.ToString(),
+                parameters: sqlQuery.Parameters,
+                cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                transaction: dbTransaction
+            )), dbConnection, dbTransaction);
         }
 
         public static async Task<bool> TableExistsAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TableExists();
 
-            bool exists = false;
-            using (IDbConnection db = Database.GetConnection())
-            {
-                exists = await db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
-                    transaction: dbTransaction
-                ));
-            }
-
-            return exists;
+            return await WithConnectionAsync(db => db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
+                sqlQuery.ToString(),
+                parameters: sqlQuery.Parameters,
+                cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                transaction: dbTransaction
+            )), dbConnection, dbTransaction);
         }
 
         public static bool TableExists<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return TableExists(entity, cancellationToken, commandTimeout, dbTransaction);
+            return TableExists(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
         }
 
         public static async Task<bool> TableExistsAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return await TableExistsAsync(entity, cancellationToken, commandTimeout, dbTransaction);
+            return await TableExistsAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
         }
     }
 }

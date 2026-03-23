@@ -50,24 +50,6 @@ namespace MicroORMSharp
             return new DbQuery<T>();
         }
 
-        public static IDbTransaction BeginTransaction()
-        {
-            if (_currentConnection == null)
-            {
-                throw new Exception("No connection string set");
-            }
-
-            return BeginTransaction(_currentConnection.Reference);
-        }
-
-        public static IDbTransaction BeginTransaction(string reference)
-        {
-            var connection = GetConnection(reference);
-            connection.Open();
-
-            return connection.BeginTransaction();
-        }
-
         public static IDbConnection GetConnection()
         {
             if (_currentConnection == null)
@@ -102,11 +84,11 @@ namespace MicroORMSharp
             return getData(db);
         }
 
-        public static async Task<T> WithConnectionAsync<T>(Func<IDbConnection, Task<T>> getData)
+        public static Task<T> WithConnectionAsync<T>(Func<IDbConnection, Task<T>> getData)
         {
             using var db = GetConnection();
             db.Open();
-            return await getData(db);
+            return getData(db);
         }
 
         public static DatabaseType GetDatabaseType()

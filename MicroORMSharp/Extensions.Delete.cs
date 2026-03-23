@@ -16,6 +16,7 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -27,7 +28,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            WithConnection(db =>
             {
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -36,13 +37,14 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static async Task DeleteAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -54,7 +56,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.DeleteRow(entity);
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            await WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -63,7 +65,7 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ??= Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
     }
 }

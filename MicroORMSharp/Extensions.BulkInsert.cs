@@ -18,7 +18,7 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void Insert<T>(this IEnumerable<T> entities) where T : IMicroORMSharp
+        public static void Insert<T>(this IEnumerable<T> entities, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
             if (entities == null)
             {
@@ -32,13 +32,16 @@ namespace MicroORMSharp
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
 
-            using (IDbConnection db = Database.GetConnection())
+            WithConnection(db =>
             {
-                db.Open();
+                if (db.State != ConnectionState.Open)
+                {
+                    db.Open();
+                }
 
                 if (db is SqlConnection)
                 {
-                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(db as SqlConnection))
+                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(db as SqlConnection, SqlBulkCopyOptions.Default, dbTransaction as SqlTransaction))
                     {
                         bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
 
@@ -49,17 +52,17 @@ namespace MicroORMSharp
                 }
                 else if (db is MySqlConnection)
                 {
-                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(db as MySqlConnection);
+                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(db as MySqlConnection, dbTransaction as MySqlTransaction);
                     bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
 
                     DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
                     bulkCopy.WriteToServer(table);
                 }
-            }
+            }, dbConnection, dbTransaction);
         }
 
-        public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
             if (entities == null)
             {
@@ -73,13 +76,16 @@ namespace MicroORMSharp
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
 
-            using (IDbConnection db = Database.GetConnection())
+            await WithConnectionAsync(async db =>
             {
-                db.Open();
+                if (db.State != ConnectionState.Open)
+                {
+                    db.Open();
+                }
 
                 if (db is SqlConnection)
                 {
-                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(db as SqlConnection))
+                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(db as SqlConnection, SqlBulkCopyOptions.Default, dbTransaction as SqlTransaction))
                     {
                         bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
 
@@ -94,14 +100,14 @@ namespace MicroORMSharp
                     {
                         throw new Exception("AllowLoadLocalInfile=True; must be included in the connection string to use bulk copy AND must be enabled on the server: SET GLOBAL local_infile=1;");
                     }
-                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(db as MySqlConnection);
+                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(db as MySqlConnection, dbTransaction as MySqlTransaction);
                     bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
 
                     DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
                     await bulkCopy.WriteToServerAsync(table, cancellationToken ?? Database._defaultCancellationToken);
                 }
-            }
+            }, dbConnection, dbTransaction);
         }
 
         private static DataTable ConvertToDataTable<T>(SqlGenerator<T> sqlGenerator, IEnumerable<T> data) where T : IMicroORMSharp

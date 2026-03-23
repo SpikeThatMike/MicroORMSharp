@@ -18,6 +18,7 @@ namespace MicroORMSharp
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -29,7 +30,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TruncateTable();
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            WithConnection(db =>
             {
                 db.Execute(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -38,13 +39,14 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static async Task TruncateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
@@ -56,7 +58,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
             var sqlQuery = sqlGenerator.TruncateTable();
 
-            using (IDbConnection db = dbTransaction?.Connection ?? Database.GetConnection())
+            await WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -65,33 +67,35 @@ namespace MicroORMSharp
                     commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
-            }
+            }, dbConnection, dbTransaction);
         }
 
         public static void TruncateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            TruncateTable(entity, cancellationToken, commandTimeout, dbTransaction);
+            TruncateTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
         }
  
         public static async Task TruncateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
+            IDbConnection? dbConnection = null,
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            await TruncateTableAsync(entity, cancellationToken, commandTimeout, dbTransaction);
+            await TruncateTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
         }
       }
 }
