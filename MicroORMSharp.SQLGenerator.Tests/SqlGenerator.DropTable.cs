@@ -1,5 +1,3 @@
-﻿using MicroORMSharp.SqlGenerator.Tests.Models;
-
 namespace MicroORMSharp.SqlGenerator.Tests
 {
     public sealed partial class SqlGenerator
@@ -7,31 +5,19 @@ namespace MicroORMSharp.SqlGenerator.Tests
         [TestMethod]
         public void DropTable_MySql()
         {
-            var sqlGenerator = new SqlGenerator<Customers>(DatabaseType.MySql);
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.MySql);
+            var sqlQuery = sqlGenerator.DropTable();
 
-            var createTable = sqlGenerator.DropTable();
-            var query = createTable.ToString();
-
-            Assert.AreEqual(
-                "DROP TABLE `Customers`",
-                query,
-                "Drop table queries do not match"
-            );
+            AssertQuery(sqlQuery, "DROP TABLE `Customers`", "Drop table queries do not match");
         }
 
         [TestMethod]
         public void DropTable_SqlServer()
         {
-            var sqlGenerator = new SqlGenerator<Customers>(DatabaseType.SqlServer);
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.SqlServer);
+            var sqlQuery = sqlGenerator.DropTable();
 
-            var createTable = sqlGenerator.DropTable();
-            var query = createTable.ToString();
-
-            Assert.AreEqual(
-                "DROP TABLE [dbo].[Customers]",
-                query,
-                "Drop table queries do not match"
-            );
+            AssertQuery(sqlQuery, "DROP TABLE [dbo].[Customers]", "Drop table queries do not match");
         }
     }
 }

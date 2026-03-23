@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MicroORMSharp.Tests
@@ -12,78 +8,40 @@ namespace MicroORMSharp.Tests
         [DoNotParallelize]
         public async Task Insert_MySql()
         {
-            Database.SetConnectionString("MySql");
+            UseMySqlConnection();
 
-            var customers = new Customers()
-            {
-                Forename = "John",
-                Surname = "Doe",
-                AddressLine1 = "Test Street",
-                AddressLine2 = "Test Town",
-                AddressLine3 = "Test City",
-                AddressLine4 = "Test County",
-                Postcode = "Postcode",
-                Nullable = null,
-                NotNullable = 0,
-                Active = true,
-            };
+            var customers = CreateCustomer();
+            await EnsureTableCreatedAsync(customers);
 
-            //initial check in case the table already exists
-            var exists = await customers.TableExistsAsync();
-            if (!exists)
+            try
             {
-                await customers.CreateTableAsync();
-                var isCreated = await customers.TableExistsAsync();
-                Assert.IsTrue(isCreated, "Failed to create table");
+                customers = customers.Insert();
+                Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
             }
-
-            customers = customers.Insert();
-
-            Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
-
-            await customers.DropTableAsync();
-            var isDeleted = await customers.TableExistsAsync();
-
-            Assert.IsFalse(isDeleted, "Failed to delete table");
+            finally
+            {
+                await AssertTableDroppedAsync(customers);
+            }
         }
 
         [TestMethod]
         [DoNotParallelize]
         public async Task InsertAsync_MySql()
         {
-            Database.SetConnectionString("MySql");
+            UseMySqlConnection();
 
-            var customers = new Customers()
-            {
-                Forename = "John",
-                Surname = "Doe",
-                AddressLine1 = "Test Street",
-                AddressLine2 = "Test Town",
-                AddressLine3 = "Test City",
-                AddressLine4 = "Test County",
-                Postcode = "Postcode",
-                Nullable = null,
-                NotNullable = 0,
-                Active = true,
-            };
+            var customers = CreateCustomer();
+            await EnsureTableCreatedAsync(customers);
 
-            //initial check in case the table already exists
-            var exists = await customers.TableExistsAsync();
-            if (!exists)
+            try
             {
-                await customers.CreateTableAsync();
-                var isCreated = await customers.TableExistsAsync();
-                Assert.IsTrue(isCreated, "Failed to create table");
+                customers = await customers.InsertAsync();
+                Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
             }
-
-            customers = await customers.InsertAsync();
-
-            Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
-
-            await customers.DropTableAsync();
-            var isDeleted = await customers.TableExistsAsync();
-
-            Assert.IsFalse(isDeleted, "Failed to delete table");
+            finally
+            {
+                await AssertTableDroppedAsync(customers);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,15 +13,15 @@ namespace MicroORMSharp.Tests
     {
         [DbIdentity]
         public long Id { get; set; }
-        public string Forename { get; set; }
-        public string Surname { get; set; }
-        public string AddressLine1 { get; set; }
-        public string AddressLine2 { get; set; }
-        public string AddressLine3 { get; set; }
-        public string AddressLine4 { get; set; }
+        public string Forename { get; set; } = string.Empty;
+        public string Surname { get; set; } = string.Empty;
+        public string AddressLine1 { get; set; } = string.Empty;
+        public string AddressLine2 { get; set; } = string.Empty;
+        public string AddressLine3 { get; set; } = string.Empty;
+        public string AddressLine4 { get; set; } = string.Empty;
         [DbColumn("Postalcode")]
         [DbMaxLength(10)]
-        public string Postcode { get; set; }
+        public string Postcode { get; set; } = string.Empty;
 
         public int? Nullable { get; set; }
         public int NotNullable { get; set; }
@@ -37,3 +37,4 @@ namespace MicroORMSharp.Tests
         }
     }
 }
+

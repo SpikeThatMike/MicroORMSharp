@@ -1,4 +1,4 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace MicroORMSharp.SqlGenerator.Tests.Models
         public long CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }
+

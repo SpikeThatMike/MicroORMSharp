@@ -1,4 +1,4 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,11 +13,12 @@ namespace MicroORMSharp.Tests.Models
     {
         [DbIdentity]
         public long Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
 
         [DBJoin(typeof(Order), "Id", "CustomerId")]
-        public List<Order> Orders { get; set; }
+        public List<Order> Orders { get; set; } = new List<Order>();
     }
 }
+

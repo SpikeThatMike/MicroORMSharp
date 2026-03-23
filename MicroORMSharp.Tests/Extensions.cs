@@ -1,10 +1,4 @@
-﻿using MicroORMSharp.SqlGenerator;
-using MicroORMSharp.SqlGenerator.Attributes;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MicroORMSharp.Tests
@@ -15,18 +9,42 @@ namespace MicroORMSharp.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            string reference = "MySql";
+            TestDatabaseFixture.EnsureMySqlConnection();
+        }
 
-            if (Database.GetAllConnections().FirstOrDefault(x => x.Reference == reference) is null)
-            {
-                //Add connection to MySql DB - Test local db
-                Database.AddConnectionString(
-                    DatabaseType.MySql,
-                    reference,
-                    "Server=localhost;Database=test;User ID=root;Password=admin;Port=3306;AllowLoadLocalInfile=true",
-                    allowTableExtensions: true
-                );
-            }
+        private static void UseMySqlConnection()
+        {
+            TestDatabaseFixture.UseMySqlConnection();
+        }
+
+        private static Customers CreateCustomer(string suffix = "")
+        {
+            return TestDatabaseFixture.CreateCustomer(suffix);
+        }
+
+        private static List<Customers> CreateCustomerBatch()
+        {
+            return TestDatabaseFixture.CreateCustomerBatch();
+        }
+
+        private static Task EnsureTableCreatedAsync(Customers customers)
+        {
+            return TestDatabaseFixture.EnsureTableCreatedAsync(customers);
+        }
+
+        private static Task EnsureTableCreatedAsync(List<Customers> customers)
+        {
+            return TestDatabaseFixture.EnsureTableCreatedAsync(customers);
+        }
+
+        private static Task AssertTableDroppedAsync(Customers customers)
+        {
+            return TestDatabaseFixture.AssertTableDroppedAsync(customers);
+        }
+
+        private static Task AssertTableDroppedAsync(List<Customers> customers)
+        {
+            return TestDatabaseFixture.AssertTableDroppedAsync(customers);
         }
     }
 }
