@@ -90,7 +90,7 @@ namespace MicroORMSharp
             )), dbConnection, dbTransaction);
         }
 
-        public static async void InsertOnlyAsync<T>(
+        public static async Task InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null,
