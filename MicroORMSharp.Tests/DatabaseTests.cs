@@ -132,6 +132,87 @@ namespace MicroORMSharp.Tests
 
         [TestMethod]
         [DoNotParallelize]
+        public async Task DbQueryMethods_UseExplicitConnection_MySql()
+        {
+            TestDatabaseFixture.UseMySqlConnection();
+
+            var customer = TestDatabaseFixture.CreateCustomer();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+
+            using var connection = Database.GetConnection();
+            connection.Open();
+
+            try
+            {
+                customer = await customer.InsertAsync(dbConnection: connection);
+
+                var query = Database.Query<Customers>()
+                    .Where(x => x.Id == customer.Id)
+                    .SetConnection(connection);
+
+                var result = await query.ExecuteSingleAsync();
+
+                Assert.IsNotNull(result, "Row not found");
+                Assert.AreEqual(customer.Id, result.Id, "Incorrect row returned");
+                Assert.IsTrue(await query.AnyAsync(), "AnyAsync doesnt use connection");
+                Assert.AreEqual(1, await query.CountAsync(), "CountAsync doesnt use connection");
+            }
+            finally
+            {
+                connection.Close();
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task DbQueryMethods_ReuseTransactionConnection_MySql()
+        {
+            TestDatabaseFixture.UseMySqlConnection();
+
+            var customer = TestDatabaseFixture.CreateCustomer();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+
+            using var connection = Database.GetConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                customer = await customer.InsertAsync(dbTransaction: transaction);
+
+                var transactionQuery = Database.Query<Customers>()
+                    .Where(x => x.Id == customer.Id)
+                    .SetTransaction(transaction);
+
+                var transactionResult = await transactionQuery.ExecuteSingleAsync();
+
+                Assert.IsNotNull(transactionResult, "Row not found");
+                Assert.AreEqual(customer.Id, transactionResult.Id, "Incorrect row returned");
+                Assert.IsTrue(await transactionQuery.AnyAsync(), "AnyAsync doesnt use transaction");
+                Assert.AreEqual(1, await transactionQuery.CountAsync(), "CountAsync doesnt use transaction");
+
+                var outsideTransaction = await Database.Query<Customers>()
+                    .Where(x => x.Id == customer.Id)
+                    .AnyAsync();
+
+                var outsideTransactionQuery = Database.Query<Customers>()
+                    .Where(x => x.Id == customer.Id);
+
+                Assert.IsFalse(outsideTransaction, "A query without SetTransaction should not see the uncommitted row");
+                Assert.IsFalse(await outsideTransactionQuery.AnyAsync(), "AnyAsync uses transaction");
+                Assert.AreEqual(0, await outsideTransactionQuery.CountAsync(), "CountAsync uses transaction");
+
+                transaction.Rollback();
+            }
+            finally
+            {
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
         public async Task JoinQueries_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -46,6 +47,18 @@ namespace MicroORMSharp.SqlGenerator
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int? _commandTimeout { get; set; } = null;
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public IDbConnection? _dbConnection { get; set; } = null;
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public IDbTransaction? _dbTransaction { get; set; } = null;
     }
 
     public static class DbQueryExtensions
@@ -128,6 +141,18 @@ namespace MicroORMSharp.SqlGenerator
         public static DbQuery<T> SetTimeout<T>(this DbQuery<T> dbQuery, int commandTimeout)
         {
             dbQuery._commandTimeout = commandTimeout;
+            return dbQuery;
+        }
+
+        public static DbQuery<T> SetConnection<T>(this DbQuery<T> dbQuery, IDbConnection dbConnection)
+        {
+            dbQuery._dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
+            return dbQuery;
+        }
+
+        public static DbQuery<T> SetTransaction<T>(this DbQuery<T> dbQuery, IDbTransaction dbTransaction)
+        {
+            dbQuery._dbTransaction = dbTransaction ?? throw new ArgumentNullException(nameof(dbTransaction));
             return dbQuery;
         }
 

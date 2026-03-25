@@ -84,11 +84,11 @@ namespace MicroORMSharp
             return getData(db);
         }
 
-        public static Task<T> WithConnectionAsync<T>(Func<IDbConnection, Task<T>> getData)
+        public static async Task<T> WithConnectionAsync<T>(Func<IDbConnection, Task<T>> getData)
         {
             using var db = GetConnection();
             db.Open();
-            return getData(db);
+            return await getData(db);
         }
 
         public static DatabaseType GetDatabaseType()

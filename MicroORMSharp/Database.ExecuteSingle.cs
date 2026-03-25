@@ -25,16 +25,16 @@ namespace MicroORMSharp
             }
 
             var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            using (IDbConnection db = GetConnection())
+            return WithQueryConnection(db =>
             {
                 return db.QueryFirstOrDefault<T>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
-            }
+            }, dbQuery);
         }
 
         public static async Task<T> ExecuteSingleAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
@@ -52,16 +52,16 @@ namespace MicroORMSharp
             }
 
             var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            using (IDbConnection db = GetConnection())
+            return await WithQueryConnectionAsync(async db =>
             {
                 return await db.QueryFirstOrDefaultAsync<T>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
-            }
+            }, dbQuery);
         }
     }
 }

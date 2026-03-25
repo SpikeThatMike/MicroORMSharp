@@ -30,19 +30,17 @@ namespace MicroORMSharp
             }
 
             var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            IEnumerable<T> results;
-            using (IDbConnection db = GetConnection())
+            return WithQueryConnection(db =>
             {
-                results = db.Query<T>(new CommandDefinition(
+                return db.Query<T>(
+                    new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
-            }
-
-            return results;
+            }, dbQuery);
         }
 
         public static async Task<IEnumerable<T>> ExecuteAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
@@ -60,53 +58,74 @@ namespace MicroORMSharp
             }
 
             var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            IEnumerable<T> results;
-            using (IDbConnection db = GetConnection())
+            return await WithQueryConnectionAsync(async db =>
             {
-                results = await db.QueryAsync<T>(new CommandDefinition(
-                   sqlQuery.ToString(),
-                   parameters: sqlQuery.Parameters,
-                   commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                   cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
-               ));
-            }
-
-            return results;
+                return await db.QueryAsync<T>(
+                    new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
+                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
+                ));
+            }, dbQuery);
         }
 
         private static IEnumerable<T> ExecuteJoin<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
         {
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            using (IDbConnection db = GetConnection())
+            return WithQueryConnection(db =>
             {
                 var rows = db.Query<dynamic>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
 
                 return MapJoinedRows(rows, sqlGenerator);
-            }
+            }, dbQuery);
         }
 
         private static async Task<IEnumerable<T>> ExecuteJoinAsync<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
         {
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            using (IDbConnection db = GetConnection())
+            return await WithQueryConnectionAsync(async db =>
             {
                 var rows = await db.QueryAsync<dynamic>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
+                    transaction: dbQuery._dbTransaction,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
-
                 return MapJoinedRows(rows, sqlGenerator);
+            }, dbQuery);
+        }
+
+        private static TResult WithQueryConnection<T, TResult>(Func<IDbConnection, TResult> action, DbQuery<T> dbQuery)
+        {
+            var existingConnection = dbQuery._dbConnection ?? dbQuery._dbTransaction?.Connection;
+            if (existingConnection != null)
+            {
+                return action(existingConnection);
             }
+
+            return WithConnection(action);
+        }
+
+        private static async Task<TResult> WithQueryConnectionAsync<T, TResult>(Func<IDbConnection, Task<TResult>> action, DbQuery<T> dbQuery)
+        {
+            var existingConnection = dbQuery._dbConnection ?? dbQuery._dbTransaction?.Connection;
+            if (existingConnection != null)
+            {
+                return await action(existingConnection);
+            }
+
+            return await WithConnectionAsync(action);
         }
 
         private static List<T> MapJoinedRows<T>(IEnumerable<dynamic> rows, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
