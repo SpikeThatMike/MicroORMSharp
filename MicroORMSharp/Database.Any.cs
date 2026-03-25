@@ -1,10 +1,6 @@
-﻿using Dapper;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MicroORMSharp
@@ -18,21 +14,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_currentConnection.DatabaseType);
-            var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()
-            T result;
-            using (IDbConnection db = GetConnection())
-            {
-                result = db.QueryFirstOrDefault<T>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
-                ));
-            }
-
+            T result = dbQuery.ExecuteSingle();
             return result != null;
         }
 
@@ -43,21 +25,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(_currentConnection.DatabaseType);
-            var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            //Use QueryFirstOrDefault to avoid loading all the data instead of using Any()
-            T result;
-            using (IDbConnection db = GetConnection())
-            {
-                result = await db.QueryFirstOrDefaultAsync<T>(new CommandDefinition(
-                    sqlQuery.ToString(),
-                    parameters: sqlQuery.Parameters,
-                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
-                ));
-            }
-
+            T result = await dbQuery.ExecuteSingleAsync();
             return result != null;
         }
     }

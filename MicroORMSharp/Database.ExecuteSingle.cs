@@ -1,11 +1,9 @@
-﻿using Dapper;
+using Dapper;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MicroORMSharp
@@ -20,20 +18,23 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
+            if (sqlGenerator.JoinProperties.Any())
+            {
+                //Dont execute this as FirstOrDefault or if it has joins they wont worker properly
+                return dbQuery.Execute().FirstOrDefault();
+            }
+
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            T result;
             using (IDbConnection db = GetConnection())
             {
-                result = db.QueryFirstOrDefault<T>(new CommandDefinition(
+                return db.QueryFirstOrDefault<T>(new CommandDefinition(
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
                     cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
                 ));
             }
-
-            return result;
         }
 
         public static async Task<T> ExecuteSingleAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
@@ -44,20 +45,23 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
-            var sqlQuery = sqlGenerator.Select(dbQuery);
-
-            T result;
-            using (IDbConnection db = GetConnection())
+            if (sqlGenerator.JoinProperties.Any())
             {
-                result = await db.QueryFirstOrDefaultAsync<T>(new CommandDefinition(
-                   sqlQuery.ToString(),
-                   parameters: sqlQuery.Parameters,
-                   commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
-                   cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
-               ));
+                //Dont execute this as FirstOrDefault or if it has joins they wont worker properly
+                return (await dbQuery.ExecuteAsync()).FirstOrDefault();
             }
 
-            return result;
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+
+            using (IDbConnection db = GetConnection())
+            {
+                return await db.QueryFirstOrDefaultAsync<T>(new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
+                ));
+            }
         }
     }
 }

@@ -24,6 +24,11 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
+            if (sqlGenerator.JoinProperties.Any())
+            {
+                return ExecuteJoin(dbQuery, sqlGenerator);
+            }
+
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
             IEnumerable<T> results;
@@ -70,228 +75,83 @@ namespace MicroORMSharp
             return results;
         }
 
+        private static IEnumerable<T> ExecuteJoin<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
+        {
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+
+            using (IDbConnection db = GetConnection())
+            {
+                var rows = db.Query<dynamic>(new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
+                ));
+
+                return MapJoinedRows(rows, sqlGenerator);
+            }
+        }
+
         private static async Task<IEnumerable<T>> ExecuteJoinAsync<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
         {
             var sqlQuery = sqlGenerator.Select(dbQuery);
 
-            var lookup = new Dictionary<long, T>();
             using (IDbConnection db = GetConnection())
             {
-                await db.QueryAsync<dynamic>(sqlQuery.ToString(), param: sqlQuery.Parameters, commandType: CommandType.Text)
-                    .ContinueWith(task =>
-                    {
-                        var splitOn = new List<string>();
+                var rows = await db.QueryAsync<dynamic>(new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    commandTimeout: dbQuery._commandTimeout ?? _defaultCommandTimeout,
+                    cancellationToken: dbQuery._cancellationToken ?? _defaultCancellationToken
+                ));
 
-                        var mainColumns = sqlGenerator.Properties
-                            .Where(x => x.GetCustomAttribute<DbIdentity>() != null);
+                return MapJoinedRows(rows, sqlGenerator);
+            }
+        }
 
-                        if (mainColumns.Any())
-                        {
-                            var column = mainColumns.FirstOrDefault();
-                            splitOn.Add(column.GetCustomAttribute<DbColumn>()?.Name ?? column.Name);
-                        }
+        private static List<T> MapJoinedRows<T>(IEnumerable<dynamic> rows, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
+        {
+            var results = new List<Dictionary<string, Dictionary<string, object>>>();
+            var tableSegments = new List<(string TableName, PropertyInfo[] Properties)>
+            {
+                (sqlGenerator.TableName, sqlGenerator.Properties.ToArray())
+            };
 
-                        foreach (var join in sqlGenerator.JoinProperties)
-                        {
-                            var dbJoin = join.GetCustomAttribute<DBJoin>();
-                            var joinColumns = dbJoin.Type
-                                .GetProperties()
-                                .Where(x => x.GetCustomAttribute<DbIdentity>() != null);
-
-                            if (joinColumns.Any())
-                            {
-                                var column = joinColumns.FirstOrDefault();
-                                splitOn.Add(column.GetCustomAttribute<DbColumn>()?.Name ?? column.Name);
-                            }
-                        }
-
-                        var rows = task.Result;
-                        var results = new List<Dictionary<string, Dictionary<string, object>>>();
-                        foreach (var row in rows)
-                        {
-                            var tables = new Dictionary<string, Dictionary<string, object>>();
-                            var properties = (IDictionary<string, object>)row;
-
-                            // Initialize the main table dictionary
-                            var mainTableName = sqlGenerator.TableName;
-                            tables[mainTableName] = new Dictionary<string, object>();
-
-                            // Keep track of which table we're currently populating
-                            string currentTableName = mainTableName;
-                            int splitIndex = 0;
-                            bool foundFirstId = false;
-
-                            // Process each property in the row
-                            foreach (var prop in properties)
-                            {
-                                // Check if this is a split column
-                                if (splitOn.Contains(prop.Key))
-                                {
-                                    // If we've already seen a split column with this name, move to the next table
-                                    if (foundFirstId && prop.Key == splitOn[splitIndex])
-                                    {
-                                        splitIndex++;
-
-                                        // If we have more tables to process
-                                        if (splitIndex < sqlGenerator.JoinProperties.Count() + 1)
-                                        {
-                                            // Get the name of the joined table
-                                            currentTableName = splitIndex == 0
-                                                ? mainTableName
-                                                : sqlGenerator.JoinProperties.ElementAt(splitIndex - 1).GetCustomAttribute<DBJoin>().Type.Name;
-
-                                            // Initialize dictionary for this table if needed
-                                            if (!tables.ContainsKey(currentTableName))
-                                            {
-                                                tables[currentTableName] = new Dictionary<string, object>();
-                                            }
-                                        }
-                                    }
-
-                                    // Mark that we've seen the first ID column
-                                    if (prop.Key == splitOn[0])
-                                    {
-                                        foundFirstId = true;
-                                    }
-                                }
-
-                                // Add the property to the current table's dictionary
-                                tables[currentTableName][prop.Key] = prop.Value;
-                            }
-
-                            // Add this row's table dictionaries to the results
-                            results.Add(tables);
-                        }
-
-                        var list = MapResultsWithJoins<T>(results);
-
-                        //List<T> mapped = new List<T>();
-
-                        //var parentName = typeof(T).GetCustomAttribute<DbTable>()?.Name ?? typeof(T).Name;
-
-
-                        //foreach (var result in results)
-                        //{
-                        //    var parent = Activator.CreateInstance<T>();
-                        //    CreateJoins(typeof(T), parent);
-
-                        //    var parentProperties = typeof(T).GetProperties()
-                        //        .Where(p => !p.GetCustomAttributes(typeof(DBJoin), true).Any());
-
-                        //    var parentObj = result[parentName];
-
-                        //    foreach (var prop in parentProperties)
-                        //    {
-                        //        var value = parentObj[prop.Name];
-                        //        if (value != null)
-                        //        {
-                        //            prop.SetValue(parent, Convert.ChangeType(value, prop.PropertyType));
-                        //        }
-                        //    }
-
-                        //    //Map joins
-                        //    foreach(var join in result.Where(x => x.Key != parentName))
-                        //    {
-
-                        //    }
-                        //}
-
-                        //var rows = task.Result;
-                        //foreach (var row in rows)
-                        //{
-                        //    // Get parent ID (e.g., Customer ID)
-                        //    long parentId = row.Id;
-
-                        //    // Try to get the parent entity from lookup, or create new if not exists
-                        //    if (!lookup.TryGetValue(parentId, out T parent))
-                        //    {
-                        //        // Create a new instance of the parent entity
-                        //        parent = Activator.CreateInstance<T>();
-
-                        //        // Map the parent properties
-                        //        var parentProperties = typeof(T).GetProperties()
-                        //            .Where(p => !p.GetCustomAttributes(typeof(DBJoin), true).Any());
-
-                        //        foreach (var prop in parentProperties)
-                        //        {
-                        //            var value = ((IDictionary<string, object>)row)[prop.Name];
-                        //            if (value != null)
-                        //            {
-                        //                prop.SetValue(parent, Convert.ChangeType(value, prop.PropertyType));
-                        //            }
-                        //        }
-
-                        //        // Initialize collections for joined entities
-                        //        var joinProperties = typeof(T).GetProperties()
-                        //            .Where(p => p.GetCustomAttributes(typeof(DBJoin), true).Any());
-
-                        //        foreach (var joinProp in joinProperties)
-                        //        {
-                        //            if (joinProp.PropertyType.IsGenericType &&
-                        //                joinProp.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
-                        //            {
-                        //                var listType = joinProp.PropertyType.GetGenericArguments()[0];
-                        //                var listInstance = Activator.CreateInstance(typeof(List<>).MakeGenericType(listType));
-                        //                joinProp.SetValue(parent, listInstance);
-                        //            }
-                        //        }
-
-                        //        lookup.Add(parentId, parent);
-                        //    }
-
-                        //    // Now handle child entities (e.g., Orders)
-                        //    var childJoinProperties = typeof(T).GetProperties()
-                        //        .Where(p => p.GetCustomAttributes(typeof(DBJoin), true).Any());
-
-                        //    foreach (var joinProp in childJoinProperties)
-                        //    {
-                        //        var joinAttr = (DBJoin)joinProp.GetCustomAttributes(typeof(DBJoin), true).First();
-                        //        var childType = joinAttr.Type;
-
-                        //        if (row.CustomerId != null)  // This assumes Order.CustomerId is always included in results
-                        //        {
-                        //            // Create child instance and map properties
-                        //            var child = Activator.CreateInstance(childType);
-                        //            var childProperties = childType.GetProperties();
-
-                        //            foreach (var childProp in childProperties)
-                        //            {
-                        //                string columnName = childProp.Name;
-                        //                if (((IDictionary<string, object>)row).ContainsKey(columnName))
-                        //                {
-                        //                    var value = ((IDictionary<string, object>)row)[columnName];
-                        //                    if (value != null)
-                        //                    {
-                        //                        childProp.SetValue(child, Convert.ChangeType(value, childProp.PropertyType));
-                        //                    }
-                        //                }
-                        //            }
-
-                        //            // Add child to parent's collection
-                        //            var childList = joinProp.GetValue(parent);
-                        //            if (childList != null)
-                        //            {
-                        //                // Get the correct Add method from the List<T> type, not from the child type
-                        //                var listType = joinProp.PropertyType;
-                        //                var addMethod = listType.GetMethod("Add");
-                        //                if (addMethod != null)
-                        //                {
-                        //                    addMethod.Invoke(childList, new[] { child });
-                        //                }
-                        //                else
-                        //                {
-                        //                    // Fallback approach if we can't find the Add method directly
-                        //                    dynamic dynamicList = childList;
-                        //                    dynamicList.Add((dynamic)child);
-                        //                }
-                        //            }
-                        //        }
-                        //    }
-                        //}
-                    });
+            foreach (var join in sqlGenerator.JoinProperties)
+            {
+                var dbJoin = join.GetCustomAttribute<DBJoin>();
+                tableSegments.Add((GetTableName(dbJoin.Type), dbJoin.Type.GetProperties()));
             }
 
-            return lookup.Values;
+            foreach (var row in rows)
+            {
+                var rowValues = ((IDictionary<string, object>)row).ToList();
+                var tables = new Dictionary<string, Dictionary<string, object>>();
+                int offset = 0;
+
+                foreach (var tableSegment in tableSegments)
+                {
+                    var tableValues = new Dictionary<string, object>();
+
+                    foreach (var property in tableSegment.Properties)
+                    {
+                        object value = offset < rowValues.Count ? rowValues[offset].Value : null;
+                        tableValues[property.Name] = value;
+                        offset++;
+                    }
+
+                    tables[tableSegment.TableName] = tableValues;
+                }
+
+                results.Add(tables);
+            }
+
+            return MapResultsWithJoins<T>(results);
+        }
+
+        private static string GetTableName(Type type)
+        {
+            return type.GetCustomAttribute<DbTable>()?.Name ?? type.Name;
         }
 
         public static List<T> MapResultsWithJoins<T>(List<Dictionary<string, Dictionary<string, object>>> results)
