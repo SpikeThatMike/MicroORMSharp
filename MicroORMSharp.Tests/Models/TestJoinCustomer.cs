@@ -14,7 +14,7 @@ namespace MicroORMSharp.Tests.Models
         public string Email { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        [DBJoin(typeof(TestJoinOrder), "Id", "CustomerId")]
+        [DBJoin(typeof(TestJoinOrder), "Id", "CustomerId", DBJoinType.Left)]
         public List<TestJoinOrder> Orders { get; set; }
     }
 }

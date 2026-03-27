@@ -17,8 +17,8 @@ namespace MicroORMSharp.SqlGenerator.Tests.Models
         public string Email { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
 
-        [DBJoin(typeof(Order), "Id", "CustomerId")]
-        public List<Order> Orders { get; set; } = new List<Order>();
+        [DBJoin(typeof(Order), "Id", "CustomerId", DBJoinType.Left)]
+        public List<Order> Orders { get; set; }
     }
 }
 

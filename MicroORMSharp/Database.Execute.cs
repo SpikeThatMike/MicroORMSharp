@@ -131,16 +131,7 @@ namespace MicroORMSharp
         private static List<T> MapJoinedRows<T>(IEnumerable<dynamic> rows, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
         {
             var results = new List<Dictionary<string, Dictionary<string, object>>>();
-            var tableSegments = new List<(string TableName, PropertyInfo[] Properties)>
-            {
-                (sqlGenerator.TableName, sqlGenerator.Properties.ToArray())
-            };
-
-            foreach (var join in sqlGenerator.JoinProperties)
-            {
-                var dbJoin = join.GetCustomAttribute<DBJoin>();
-                tableSegments.Add((GetTableName(dbJoin.Type), dbJoin.Type.GetProperties()));
-            }
+            var tableSegments = GetTableSegments(typeof(T), sqlGenerator.TableName, 1).ToList();
 
             foreach (var row in rows)
             {
@@ -177,13 +168,11 @@ namespace MicroORMSharp
         {
             List<T> mappedParents = new List<T>();
             var parentName = typeof(T).GetCustomAttribute<DbTable>()?.Name ?? typeof(T).Name;
+            var parentProperties = GetScalarProperties(typeof(T)).ToList();
 
             foreach (var result in results)
             {
                 var parentObj = result[parentName];
-
-                var parentProperties = typeof(T).GetProperties()
-                    .Where(p => !p.GetCustomAttributes(typeof(DBJoin), true).Any());
 
                 // Check if it exists
                 T existingParent = default;
@@ -241,173 +230,232 @@ namespace MicroORMSharp
                     }
 
                     // Initialize any collection properties for joins
-                    CreateJoins(typeof(T), parent);
+                    CreateJoins(typeof(T), parent, 1);
 
                     // Add to our list of tracked parents
                     mappedParents.Add(parent);
                 }
 
                 // Process joins
-                MapJoins(parent, result, parentName);
+                MapJoins(parent, typeof(T), result, 1);
             }
 
             return mappedParents;
         }
 
-        private static void MapJoins<T>(T parent, Dictionary<string, Dictionary<string, object>> row, string parentName)
+        private static void MapJoins(object parent, Type parentType, Dictionary<string, Dictionary<string, object>> row, int depth)
         {
-            foreach (var join in row.Where(x => x.Key != parentName))
+            EnsureJoinDepth(depth);
+
+            foreach (var joinProperty in GetJoinProperties(parentType))
             {
-                string joinName = join.Key;
-                var joinData = join.Value;
-
-                // data is empty or all null
-                if (joinData == null || joinData.All(kvp => kvp.Value == null || kvp.Value == DBNull.Value))
-                    continue;
-
-                var joinProperty = typeof(T).GetProperties()
-                    .FirstOrDefault(p =>
-                        (p.GetCustomAttribute<DBJoin>()?.Type.GetCustomAttribute<DbTable>().Name ?? p.GetCustomAttribute<DBJoin>()?.Type.Name) == joinName ||
-                        p.Name == joinName);
-
-                if (joinProperty == null)
-                    continue; // Skip if no matching property
-
                 var joinAttr = joinProperty.GetCustomAttribute<DBJoin>();
                 if (joinAttr == null)
+                {
                     continue;
+                }
+
+                var childType = GetJoinedEntityType(joinProperty.PropertyType);
+                var joinName = GetTableName(childType);
+
+                if (!row.TryGetValue(joinName, out var joinData))
+                {
+                    continue;
+                }
+
+                // data is empty or all null
+                if (joinData == null || joinData.All(x => x.Value == null || x.Value == DBNull.Value))
+                {
+                    continue;
+                }
 
                 if (typeof(IEnumerable).IsAssignableFrom(joinProperty.PropertyType) && joinProperty.PropertyType != typeof(string))
                 {
                     // one-to-many
-                    Type childType = joinProperty.PropertyType.GetGenericArguments().FirstOrDefault();
-                    if (childType == null)
-                        continue;
-
-                    // child object
-                    var childObj = Activator.CreateInstance(childType);
-
-                    // Map the child properties
-                    foreach (var prop in childType.GetProperties())
+                    if (!(joinProperty.GetValue(parent) is IList collection))
                     {
-                        if (joinData.ContainsKey(prop.Name) && joinData[prop.Name] != null && joinData[prop.Name] != DBNull.Value)
-                        {
-                            try
-                            {
-                                prop.SetValue(childObj, Convert.ChangeType(joinData[prop.Name], prop.PropertyType));
-                            }
-                            catch (InvalidCastException)
-                            {
-                                // Handle nullable types
-                                if (Nullable.GetUnderlyingType(prop.PropertyType) != null)
-                                {
-                                    prop.SetValue(childObj, Convert.ChangeType(joinData[prop.Name],
-                                        Nullable.GetUnderlyingType(prop.PropertyType)));
-                                }
-                            }
-                        }
+                        collection = (IList)CreateJoinListInstance(joinProperty.PropertyType);
+                        joinProperty.SetValue(parent, collection);
                     }
 
-                    // Add to the collection
-                    var collection = joinProperty.GetValue(parent) as System.Collections.IList;
-                    if (collection != null)
+                    var childObj = FindExistingEntity(collection, childType, joinData)
+                        ?? CreateMappedEntity(childType, joinData);
+
+                    if (!collection.Contains(childObj))
                     {
-                        // Check if this child is already in the collection (prevent duplicates)
-                        bool isDuplicate = false;
-                        var childProperties = childType.GetProperties();
-
-                        foreach (var existingChild in collection)
-                        {
-                            bool isMatch = true;
-                            foreach (var prop in childProperties)
-                            {
-                                var newValue = prop.GetValue(childObj);
-                                var existingValue = prop.GetValue(existingChild);
-
-                                // Skip null values in the comparison
-                                if (newValue == null)
-                                    continue;
-
-                                // Compare the values
-                                if (existingValue == null || !newValue.Equals(existingValue))
-                                {
-                                    isMatch = false;
-                                    break;
-                                }
-                            }
-
-                            if (isMatch)
-                            {
-                                isDuplicate = true;
-                                break;
-                            }
-                        }
-
-                        if (!isDuplicate)
-                            collection.Add(childObj);
+                        collection.Add(childObj);
                     }
+
+                    MapJoins(childObj, childType, row, depth + 1);
                 }
                 else
                 {
                     // one-to-one
-                    Type childType = joinProperty.PropertyType;
+                    var existingChild = joinProperty.GetValue(parent);
+                    var childObj = existingChild
+                        ?? CreateMappedEntity(childType, joinData);
 
-                    // Skip if child data is null (no joined record)
-                    if (joinData.All(kvp => kvp.Value == null || kvp.Value == DBNull.Value))
-                        continue;
-
-                    var childObj = Activator.CreateInstance(childType);
-
-                    // Map the child properties
-                    foreach (var prop in childType.GetProperties())
-                    {
-                        if (joinData.ContainsKey(prop.Name) && joinData[prop.Name] != null && joinData[prop.Name] != DBNull.Value)
-                        {
-                            try
-                            {
-                                prop.SetValue(childObj, Convert.ChangeType(joinData[prop.Name], prop.PropertyType));
-                            }
-                            catch (InvalidCastException)
-                            {
-                                // Handle nullable types
-                                if (Nullable.GetUnderlyingType(prop.PropertyType) != null)
-                                {
-                                    prop.SetValue(childObj, Convert.ChangeType(joinData[prop.Name],
-                                        Nullable.GetUnderlyingType(prop.PropertyType)));
-                                }
-                            }
-                        }
-                    }
-
-                    // Set the property
                     joinProperty.SetValue(parent, childObj);
+                    MapJoins(childObj, childType, row, depth + 1);
                 }
             }
         }
 
-        private static void CreateJoins(Type type, object parent)
+        private static void CreateJoins(Type type, object parent, int depth)
         {
-            var joinProperties = type.GetProperties()
-                .Where(p => p.GetCustomAttributes(typeof(DBJoin), true).Any());
+            EnsureJoinDepth(depth);
 
-            foreach (var joinProp in joinProperties)
+            foreach (var joinProp in GetJoinProperties(type))
             {
-                var nestedJoin = joinProp.GetType().GetProperties()
-                    .Where(p => p.GetCustomAttributes(typeof(DBJoin), true).Any());
-
-                if (nestedJoin.Any())
-                {
-                    CreateJoins(nestedJoin.First().GetType(), nestedJoin.First());
-                    continue;
-                }
-
                 if (joinProp.PropertyType.IsGenericType &&
                     joinProp.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
                 {
-                    var listType = joinProp.PropertyType.GetGenericArguments()[0];
-                    var listInstance = Activator.CreateInstance(typeof(List<>).MakeGenericType(listType));
-                    joinProp.SetValue(parent, listInstance);
+                    if (joinProp.GetValue(parent) == null)
+                    {
+                        joinProp.SetValue(parent, CreateJoinListInstance(joinProp.PropertyType));
+                    }
                 }
+            }
+        }
+
+        private static IEnumerable<(string TableName, PropertyInfo[] Properties)> GetTableSegments(Type type, string tableName, int depth)
+        {
+            EnsureJoinDepth(depth);
+
+            yield return (tableName, GetScalarProperties(type).ToArray());
+
+            foreach (var joinProp in GetJoinProperties(type))
+            {
+                var joinType = joinProp.GetCustomAttribute<DBJoin>()?.Type;
+                if (joinType == null)
+                {
+                    continue;
+                }
+
+                var joinTableName = GetTableName(joinType);
+                foreach (var segment in GetTableSegments(joinType, joinTableName, depth + 1))
+                {
+                    yield return segment;
+                }
+            }
+        }
+
+        private static IEnumerable<PropertyInfo> GetScalarProperties(Type type)
+        {
+            return type
+                .GetProperties()
+                .Where(p => !p.GetCustomAttributes(typeof(DBJoin), true).Any()
+                    && !p.GetCustomAttributes(typeof(DbIgnore), true).Any());
+        }
+
+        private static IEnumerable<PropertyInfo> GetJoinProperties(Type type)
+        {
+            return type
+                .GetProperties()
+                .Where(p => p.GetCustomAttributes(typeof(DBJoin), true).Any());
+        }
+
+        private static Type GetJoinedEntityType(Type propertyType)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(propertyType) && propertyType != typeof(string))
+            {
+                return propertyType.GetGenericArguments().First();
+            }
+
+            return propertyType;
+        }
+
+        private static object CreateMappedEntity(Type type, Dictionary<string, object> values)
+        {
+            var entity = Activator.CreateInstance(type);
+            MapEntityProperties(entity, type, values);
+            CreateJoins(type, entity, 1);
+            return entity;
+        }
+
+        private static void MapEntityProperties(object entity, Type type, Dictionary<string, object> values)
+        {
+            foreach (var prop in GetScalarProperties(type))
+            {
+                if (!values.ContainsKey(prop.Name) || values[prop.Name] == null || values[prop.Name] == DBNull.Value)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    prop.SetValue(entity, Convert.ChangeType(values[prop.Name], prop.PropertyType));
+                }
+                catch (InvalidCastException)
+                {
+                    var nullableType = Nullable.GetUnderlyingType(prop.PropertyType);
+                    if (nullableType != null)
+                    {
+                        prop.SetValue(entity, Convert.ChangeType(values[prop.Name], nullableType));
+                    }
+                }
+            }
+        }
+
+        private static object FindExistingEntity(IList collection, Type entityType, Dictionary<string, object> values)
+        {
+            foreach (var existingEntity in collection)
+            {
+                bool isMatch = true;
+                foreach (var prop in GetScalarProperties(entityType))
+                {
+                    if (!values.ContainsKey(prop.Name))
+                    {
+                        continue;
+                    }
+
+                    var newValue = values[prop.Name];
+                    if (newValue == null || newValue == DBNull.Value)
+                    {
+                        continue;
+                    }
+
+                    var existingValue = prop.GetValue(existingEntity);
+                    var convertedValue = ConvertValue(newValue, prop.PropertyType);
+
+                    if (existingValue == null || !existingValue.Equals(convertedValue))
+                    {
+                        isMatch = false;
+                        break;
+                    }
+                }
+
+                if (isMatch)
+                {
+                    return existingEntity;
+                }
+            }
+
+            return null;
+        }
+
+        private static object ConvertValue(object value, Type propertyType)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                return null;
+            }
+
+            var targetType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+            return Convert.ChangeType(value, targetType);
+        }
+
+        private static object CreateJoinListInstance(Type listType)
+        {
+            var itemType = listType.GetGenericArguments()[0];
+            return Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType));
+        }
+
+        private static void EnsureJoinDepth(int depth)
+        {
+            if (depth > DBJoin.MaxDepth)
+            {
+                throw new InvalidOperationException($"Nested joins are limited to {DBJoin.MaxDepth} levels.");
             }
         }
     }

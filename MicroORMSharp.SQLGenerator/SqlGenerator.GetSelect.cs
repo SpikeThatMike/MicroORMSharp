@@ -60,18 +60,10 @@ namespace MicroORMSharp.SqlGenerator
 
             if (JoinProperties.Any())
             {
-                foreach (var join in JoinProperties)
+                var joinSelectColumns = GenerateJoinSelectClause(JoinProperties, 1);
+                if (joinSelectColumns.Any())
                 {
-                    var dbJoin = join.GetCustomAttribute<DBJoin>();
-                    var joinColumns = dbJoin.Type
-                        .GetProperties()
-                        .Select(x => (MemberInfo)x);
-                    var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
-
-                    if (joinColumns.Any())
-                    {
-                        sqlQuery.Query.Append($", {string.Join(", ", GenerateSelectClause(dbTable.Name, joinColumns))}");
-                    }
+                    sqlQuery.Query.Append($", {string.Join(", ", joinSelectColumns)}");
                 }
             }
 
@@ -79,8 +71,8 @@ namespace MicroORMSharp.SqlGenerator
 
             if (JoinProperties.Any())
             {
-                var joins = GenerateJoins(JoinProperties);
-                sqlQuery.Query.Append($" {joins.Query.ToString()}");
+                var joins = GenerateJoins(TableName, JoinProperties, 1);
+                sqlQuery.Query.Append($"{joins.Query}");
             }
 
             //Where clause
@@ -122,22 +114,81 @@ namespace MicroORMSharp.SqlGenerator
             return columns;
         }
 
-        private SqlQuery GenerateJoins(IEnumerable<MemberInfo> joins)
+        private IEnumerable<string> GenerateJoinSelectClause(IEnumerable<MemberInfo> joins, int depth)
         {
+            EnsureJoinDepth(depth);
+
+            foreach (var join in joins)
+            {
+                var dbJoin = join.GetCustomAttribute<DBJoin>();
+                var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
+                var joinColumns = GetSelectableMembers(dbJoin.Type);
+
+                foreach (var column in GenerateSelectClause(dbTable.Name, joinColumns))
+                {
+                    yield return column;
+                }
+
+                foreach (var nestedColumn in GenerateJoinSelectClause(GetJoinMembers(dbJoin.Type), depth + 1))
+                {
+                    yield return nestedColumn;
+                }
+            }
+        }
+
+        private SqlQuery GenerateJoins(string parentTableName, IEnumerable<MemberInfo> joins, int depth)
+        {
+            EnsureJoinDepth(depth);
+
             SqlQuery sqlQuery = new SqlQuery();
 
             foreach(var join in joins)
             {
                 var dbJoin = join.GetCustomAttribute<DBJoin>();
-                var joinColumns = dbJoin.Type
-                    .GetProperties()
-                    .Select(x => (MemberInfo)x);
                 var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
 
-                sqlQuery.Query.Append($" INNER JOIN {GetFullTableName(dbTable)} ON {AddBrackets(dbTable.Name)}.{AddBrackets(dbJoin.OtherKey)} = {AddBrackets(TableName)}.{AddBrackets(dbJoin.TableKey)}");
+                sqlQuery.Query.Append($" {GetJoinKeyword(dbJoin.JoinType)} JOIN {GetFullTableName(dbTable)} ON {AddBrackets(dbTable.Name)}.{AddBrackets(dbJoin.OtherKey)} = {AddBrackets(parentTableName)}.{AddBrackets(dbJoin.TableKey)}");
+
+                var nestedJoins = GetJoinMembers(dbJoin.Type).ToList();
+                if (nestedJoins.Any())
+                {
+                    sqlQuery.Query.Append(GenerateJoins(dbTable.Name, nestedJoins, depth + 1).Query.ToString());
+                }
             }
 
             return sqlQuery;
+        }
+
+        private void EnsureJoinDepth(int depth)
+        {
+            if (depth > DBJoin.MaxDepth)
+            {
+                throw new InvalidOperationException($"Nested joins are limited to {DBJoin.MaxDepth} levels.");
+            }
+        }
+
+        private string GetJoinKeyword(DBJoinType joinType)
+        {
+            return joinType switch
+            {
+                DBJoinType.Left => "LEFT",
+                DBJoinType.Right => "RIGHT",
+                _ => "INNER"
+            };
+        }
+
+        private IEnumerable<MemberInfo> GetSelectableMembers(Type type)
+        {
+            return type.GetProperties()
+                .Where(x => !x.IsDefined(typeof(DbIgnore), true) && !x.IsDefined(typeof(DBJoin), true))
+                .Select(x => (MemberInfo)x);
+        }
+
+        private IEnumerable<MemberInfo> GetJoinMembers(Type type)
+        {
+            return type.GetProperties()
+                .Where(x => x.IsDefined(typeof(DBJoin), true))
+                .Select(x => (MemberInfo)x);
         }
 
         private SqlQuery GenerateWhereClause(Expression expression)

@@ -1,3 +1,4 @@
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Tests.Models;
 
 namespace MicroORMSharp.SqlGenerator.Tests
@@ -123,9 +124,47 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var sqlQuery = sqlGenerator.Select(dbQuery);
             AssertQuery(
                 sqlQuery,
-                "SELECT `Customer`.`Id` AS `Id`, `Customer`.`Name` AS `Name`, `Customer`.`Email` AS `Email`, `Customer`.`CreatedDate` AS `CreatedDate`, `Order`.`Id` AS `Id`, `Order`.`CustomerId` AS `CustomerId`, `Order`.`OrderDate` AS `OrderDate`, `Order`.`TotalAmount` AS `TotalAmount`, `Order`.`Status` AS `Status` FROM `Customer`  INNER JOIN `Order` ON `Order`.`CustomerId` = `Customer`.`Id`",
+                "SELECT `Customer`.`Id` AS `Id`, `Customer`.`Name` AS `Name`, `Customer`.`Email` AS `Email`, `Customer`.`CreatedDate` AS `CreatedDate`, `Order`.`Id` AS `Id`, `Order`.`CustomerId` AS `CustomerId`, `Order`.`OrderDate` AS `OrderDate`, `Order`.`TotalAmount` AS `TotalAmount`, `Order`.`Status` AS `Status` FROM `Customer` LEFT JOIN `Order` ON `Order`.`CustomerId` = `Customer`.`Id`",
                 "Select queries do not match"
             );
+        }
+
+        [TestMethod]
+        public void SelectNestedJoin_MySql()
+        {
+            var sqlGenerator = new SqlGenerator<NestedJoinCustomer>(DatabaseType.MySql);
+            var dbQuery = new DbQuery<NestedJoinCustomer>();
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT `NestedCustomer`.`Id` AS `Id`, `NestedCustomer`.`Name` AS `Name`, `NestedOrder`.`Id` AS `Id`, `NestedOrder`.`CustomerId` AS `CustomerId`, `NestedOrder`.`StatusId` AS `StatusId`, `NestedOrder`.`OrderDate` AS `OrderDate`, `NestedOrder`.`TotalAmount` AS `TotalAmount`, `NestedOrderStatus`.`Id` AS `Id`, `NestedOrderStatus`.`Name` AS `Name` FROM `NestedCustomer` LEFT JOIN `NestedOrder` ON `NestedOrder`.`CustomerId` = `NestedCustomer`.`Id` INNER JOIN `NestedOrderStatus` ON `NestedOrderStatus`.`Id` = `NestedOrder`.`StatusId`",
+                "Nested join queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void SelectJoinTypes_MySql()
+        {
+            var sqlGenerator = new SqlGenerator<JoinTypeCustomer>(DatabaseType.MySql);
+            var dbQuery = new DbQuery<JoinTypeCustomer>();
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT `JoinTypeCustomer`.`Id` AS `Id`, `JoinTypeCustomer`.`Name` AS `Name`, `JoinTypeOrder`.`Id` AS `Id`, `JoinTypeOrder`.`CustomerId` AS `CustomerId`, `JoinTypeOrder`.`StatusId` AS `StatusId`, `JoinTypeStatus`.`Id` AS `Id`, `JoinTypeStatus`.`Name` AS `Name` FROM `JoinTypeCustomer` LEFT JOIN `JoinTypeOrder` ON `JoinTypeOrder`.`CustomerId` = `JoinTypeCustomer`.`Id` INNER JOIN `JoinTypeStatus` ON `JoinTypeStatus`.`Id` = `JoinTypeOrder`.`StatusId`",
+                "Join type queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void SelectNestedJoin_TooDeep_Throws()
+        {
+            var sqlGenerator = new SqlGenerator<DeepJoinLevel1>(DatabaseType.MySql);
+            var dbQuery = new DbQuery<DeepJoinLevel1>();
+
+            var ex = Assert.ThrowsException<InvalidOperationException>(() => sqlGenerator.Select(dbQuery));
+            Assert.AreEqual($"Nested joins are limited to {DBJoin.MaxDepth} levels.", ex.Message, "Unexpected nested join depth message");
         }
     }
 }

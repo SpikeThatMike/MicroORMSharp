@@ -2,6 +2,7 @@
 **MicroORMSharp** is a lightweight micro ORM for .NET built on top of Dapper. It focuses on the common operations
 - CRUD operations (inserts, updates, deletes)
 - Querying with LINQ-style API
+- Querying data with LEFT,INNER,RIGHT joins with nested join support
 - Optional table operations (create, drop, truncate, exists)
 - Bulk insert support
 - The ability use native Dapper methods without handling connections
@@ -467,7 +468,7 @@ public class CustomerWithOrders : IMicroORMSharp
     public string Name { get; set; }
     public string Email { get; set; }
 
-    [DBJoin(typeof(Order), "Id", "CustomerId")]
+    [DBJoin(typeof(Order), "Id", "CustomerId", DBJoinType.Left)]
     public List<Order> Orders { get; set; }
 }
 
@@ -486,6 +487,9 @@ Then query as normal:
 ```csharp
 var customers = await Database.Query<CustomerWithOrders>().ExecuteAsync();
 ```
+
+You can specify `DBJoinType.Inner`, `DBJoinType.Left`, `DBJoinType.Right` for joins.
+Nested joins are supported up to 3 levels deep. Queries that exceed that limit throw an `InvalidOperationException`.
 
 ## Issues
 If you find a bug or want to suggest an improvement, please open an issue or pull request.

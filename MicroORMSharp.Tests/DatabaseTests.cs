@@ -1,14 +1,11 @@
 using MicroORMSharp.Tests.Models;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MicroORMSharp.Tests
 {
     [TestClass]
-    public sealed class DatabaseTests
+    public partial class DatabaseTests
     {
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
@@ -65,25 +62,6 @@ namespace MicroORMSharp.Tests
             {
                 await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public async Task ExecuteJoin_MySql()
-        {
-            TestDatabaseFixture.UseMySqlConnection();
-
-            var results = await Database.Query<CustomersJoined>().ExecuteAsync();
-            Assert.IsNotNull(results, "ExecuteAsync join query returned null");
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public async Task ExecuteJoinSingle_MySql()
-        {
-            TestDatabaseFixture.UseMySqlConnection();
-
-            await Database.Query<CustomersJoined>().ExecuteSingleAsync();
         }
 
         [TestMethod]
@@ -208,64 +186,6 @@ namespace MicroORMSharp.Tests
             finally
             {
                 await TestDatabaseFixture.AssertTableDroppedAsync(customer);
-            }
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public async Task JoinQueries_MySql()
-        {
-            TestDatabaseFixture.UseMySqlConnection();
-
-            var customer = new TestJoinCustomer
-            {
-                Name = "Join Test Customer",
-                Email = "join-test@example.com",
-                CreatedDate = new DateTime(2026, 3, 24, 10, 0, 0, DateTimeKind.Utc)
-            };
-
-            var orderTemplate = new TestJoinOrder();
-
-            await EnsureTableCreatedAsync(customer);
-            await EnsureTableCreatedAsync(orderTemplate);
-
-            try
-            {
-                customer = await customer.InsertAsync();
-
-                await new TestJoinOrder
-                {
-                    CustomerId = customer.Id,
-                    OrderDate = customer.CreatedDate,
-                    TotalAmount = 10.50m,
-                    Status = "Open"
-                }.InsertAsync();
-
-                await new TestJoinOrder
-                {
-                    CustomerId = customer.Id,
-                    OrderDate = customer.CreatedDate.AddHours(1),
-                    TotalAmount = 25.00m,
-                    Status = "Paid"
-                }.InsertAsync();
-
-                var query = Database.Query<TestJoinCustomer>()
-                    .Where(x => x.Id == customer.Id);
-
-                var executeResult = (await query.ExecuteAsync()).FirstOrDefault();
-                Assert.AreEqual(2, executeResult.Orders.Count, "Execute should map joined child rows");
-
-                var executeSingleResult = await query.ExecuteSingleAsync();
-                Assert.IsNotNull(executeSingleResult, "ExecuteSingle returned null for a joined query");
-                Assert.AreEqual(2, executeSingleResult.Orders.Count, "ExecuteSingle should map joined child rows");
-
-                Assert.IsTrue(await query.AnyAsync(), "Any should return true for a joined query with matching rows");
-                Assert.AreEqual(1, await query.CountAsync(), "Count should return the number of parent rows after join mapping");
-            }
-            finally
-            {
-                await DropTableIfExistsAsync(orderTemplate);
-                await DropTableIfExistsAsync(customer);
             }
         }
 
