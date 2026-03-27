@@ -1,4 +1,4 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections;
@@ -7,7 +7,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MicroORMSharp.SqlGenerator
 {
@@ -45,13 +44,11 @@ namespace MicroORMSharp.SqlGenerator
         {
             var sqlQuery = new SqlQuery("SELECT");
 
-            //SQL SERVER TOP
             if (DatabaseType == DatabaseType.SqlServer && dbQuery._take != null)
             {
                 sqlQuery.Query.Append($" TOP ({dbQuery._take})");
             }
 
-            //Select rows
             var selectColumns = dbQuery._selectClause != null && dbQuery._selectClause.Any() ? dbQuery._selectClause.ToList() : Properties.Select(x => (MemberInfo)x).ToList();
             if (selectColumns.Any())
             {
@@ -75,7 +72,6 @@ namespace MicroORMSharp.SqlGenerator
                 sqlQuery.Query.Append($"{joins.Query}");
             }
 
-            //Where clause
             if (dbQuery._whereClause != null)
             {
                 var filter = GenerateWhereClause(dbQuery._whereClause.Body);
@@ -83,14 +79,12 @@ namespace MicroORMSharp.SqlGenerator
                 sqlQuery.Query.Append($" WHERE {filter.ToString()}");
             }
 
-            //Order by
             if (dbQuery._orderBy.Any())
             {
                 sqlQuery.Query.Append(" ORDER BY ");
-                sqlQuery.Query.Append(string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(TableName)}.{AddBrackets(x.Key)} {(x.Value ? "DESC" : "ASC")}")));
+                sqlQuery.Query.Append(string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(x.Key))} {(x.Value ? "DESC" : "ASC")}")));
             }
 
-            //MY SQL LIMIT
             if (DatabaseType == DatabaseType.MySql && dbQuery._take != null)
             {
                 sqlQuery.Query.Append($" LIMIT {dbQuery._take}");
@@ -106,7 +100,7 @@ namespace MicroORMSharp.SqlGenerator
             foreach (var member in memberInfo)
             {
                 var classColumn = member.Name;
-                var dbColumn = member.GetCustomAttribute<DbColumn>()?.Name ?? classColumn;
+                var dbColumn = GetPropertyName(member);
 
                 columns.Add($"{AddBrackets(tableName)}.{AddBrackets(dbColumn)} AS {AddBrackets(classColumn)}");
             }
@@ -120,16 +114,16 @@ namespace MicroORMSharp.SqlGenerator
 
             foreach (var join in joins)
             {
-                var dbJoin = join.GetCustomAttribute<DBJoin>();
-                var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
-                var joinColumns = GetSelectableMembers(dbJoin.Type);
+                var joinMetadata = GetPropertyMetadata((PropertyInfo)join).Join;
+                var joinTypeMetadata = GetMetadata(joinMetadata.JoinedType);
+                var joinColumns = GetSelectableMembers(joinMetadata.JoinedType);
 
-                foreach (var column in GenerateSelectClause(dbTable.Name, joinColumns))
+                foreach (var column in GenerateSelectClause(joinTypeMetadata.TableName, joinColumns))
                 {
                     yield return column;
                 }
 
-                foreach (var nestedColumn in GenerateJoinSelectClause(GetJoinMembers(dbJoin.Type), depth + 1))
+                foreach (var nestedColumn in GenerateJoinSelectClause(GetJoinMembers(joinMetadata.JoinedType), depth + 1))
                 {
                     yield return nestedColumn;
                 }
@@ -142,17 +136,17 @@ namespace MicroORMSharp.SqlGenerator
 
             SqlQuery sqlQuery = new SqlQuery();
 
-            foreach(var join in joins)
+            foreach (var join in joins)
             {
-                var dbJoin = join.GetCustomAttribute<DBJoin>();
-                var dbTable = dbJoin.Type.GetCustomAttribute<DbTable>();
+                var joinMetadata = GetPropertyMetadata((PropertyInfo)join).Join;
+                var joinTypeMetadata = GetMetadata(joinMetadata.JoinedType);
 
-                sqlQuery.Query.Append($" {GetJoinKeyword(dbJoin.JoinType)} JOIN {GetFullTableName(dbTable)} ON {AddBrackets(dbTable.Name)}.{AddBrackets(dbJoin.OtherKey)} = {AddBrackets(parentTableName)}.{AddBrackets(dbJoin.TableKey)}");
+                sqlQuery.Query.Append($" {GetJoinKeyword(joinMetadata.JoinType)} JOIN {FormatFullTableName(joinTypeMetadata.TableDatabase, joinTypeMetadata.TableSchema, joinTypeMetadata.TableName, DatabaseType)} ON {AddBrackets(joinTypeMetadata.TableName)}.{AddBrackets(joinMetadata.OtherKey)} = {AddBrackets(parentTableName)}.{AddBrackets(joinMetadata.TableKey)}");
 
-                var nestedJoins = GetJoinMembers(dbJoin.Type).ToList();
+                var nestedJoins = GetJoinMembers(joinMetadata.JoinedType);
                 if (nestedJoins.Any())
                 {
-                    sqlQuery.Query.Append(GenerateJoins(dbTable.Name, nestedJoins, depth + 1).Query.ToString());
+                    sqlQuery.Query.Append(GenerateJoins(joinTypeMetadata.TableName, nestedJoins, depth + 1).Query.ToString());
                 }
             }
 
@@ -179,16 +173,12 @@ namespace MicroORMSharp.SqlGenerator
 
         private IEnumerable<MemberInfo> GetSelectableMembers(Type type)
         {
-            return type.GetProperties()
-                .Where(x => !x.IsDefined(typeof(DbIgnore), true) && !x.IsDefined(typeof(DBJoin), true))
-                .Select(x => (MemberInfo)x);
+            return GetMetadata(type).Properties.Select(x => (MemberInfo)x);
         }
 
         private IEnumerable<MemberInfo> GetJoinMembers(Type type)
         {
-            return type.GetProperties()
-                .Where(x => x.IsDefined(typeof(DBJoin), true))
-                .Select(x => (MemberInfo)x);
+            return GetMetadata(type).JoinProperties.Select(x => (MemberInfo)x);
         }
 
         private SqlQuery GenerateWhereClause(Expression expression)
@@ -219,7 +209,6 @@ namespace MicroORMSharp.SqlGenerator
 
         private SqlQuery MethodCallExpressionExtract(ref int i, MethodCallExpression expression)
         {
-            #region SQL Like Methods - String
             bool IsStringMethod(MethodInfo method, string name) => method == typeof(string).GetMethod(name, new[] { typeof(string) });
 
             if (IsStringMethod(expression.Method, "Contains"))
@@ -257,10 +246,7 @@ namespace MicroORMSharp.SqlGenerator
                     ParseExpression(ref i, expression.Arguments[0], left: false)
                 );
             }
-            #endregion
 
-
-            #region SQL Contains Method - Lists
             if (expression.Method.Name == "Contains")
             {
                 Expression collection;
@@ -288,7 +274,6 @@ namespace MicroORMSharp.SqlGenerator
                     SqlQuery.IsCollection(ref i, values)
                 );
             }
-            #endregion
 
             throw new Exception("Unsupported method call: " + expression.Method.Name);
         }
@@ -303,7 +288,7 @@ namespace MicroORMSharp.SqlGenerator
 
             if (expression.Member is PropertyInfo property)
             {
-                var colName = property.GetCustomAttribute<Attributes.DbColumn>()?.Name ?? property.Name;
+                var colName = SqlGeneratorCache.GetRequiredPropertyMetadata(property).ColumnName;
 
                 if (left)
                 {
@@ -377,6 +362,14 @@ namespace MicroORMSharp.SqlGenerator
             return _nodeTypeMappings.TryGetValue(nodeType, out var value)
                 ? value
                 : string.Empty;
+        }
+
+        private static string GetPropertyName<T>(Expression<Func<T, object>> column)
+        {
+            var expression = (MemberExpression)column.Body;
+            return expression.Member is PropertyInfo property
+                ? SqlGeneratorCache.GetRequiredPropertyMetadata(property).ColumnName
+                : expression.Member.Name;
         }
     }
 }

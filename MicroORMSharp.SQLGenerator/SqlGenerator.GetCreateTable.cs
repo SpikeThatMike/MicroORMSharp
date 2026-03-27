@@ -1,8 +1,6 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Reflection;
 using System.Text;
 
@@ -65,14 +63,14 @@ namespace MicroORMSharp.SqlGenerator
 
         private string GetDBMaxLength(PropertyInfo prop)
         {
-            return prop.GetCustomAttribute<DbMaxLength>()?.Max.ToString() ?? "MAX";
+            return GetPropertyMetadata(prop).MaxLength?.ToString() ?? "MAX";
         }
 
         private string GetAdditionalProperties(PropertyInfo prop)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
-            if (prop.GetCustomAttribute<DbIdentity>() != null)
+            if (GetPropertyMetadata(prop).IsIdentity)
             {
                 if (DatabaseType == DatabaseType.SqlServer)
                 {
@@ -85,16 +83,6 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             return stringBuilder.ToString();
-        }
-
-        private string GetPropertyName(PropertyInfo prop)
-        {
-            return prop.GetCustomAttribute<DbColumn>()?.Name ?? prop.Name;
-        }
-
-        private string GetPropertyName(MemberInfo prop)
-        {
-            return prop.GetCustomAttribute<DbColumn>()?.Name ?? prop.Name;
         }
     }
 }

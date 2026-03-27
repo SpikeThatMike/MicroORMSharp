@@ -1,23 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace MicroORMSharp.SqlGenerator.Models
 {
-    internal class SqlMetadata
+    internal sealed class SqlMetadata
     {
+        public Type EntityType { get; set; }
         public string TableDatabase { get; set; }
         public string TableSchema { get; set; }
         public string TableName { get; set; }
-
         public List<PropertyInfo> AllProperties { get; set; }
         public List<PropertyInfo> Properties { get; set; }
         public List<PropertyInfo> IgnoreProperties { get; set; }
         public List<PropertyInfo> JoinProperties { get; set; }
-
-        public string FullTableNameSqlServer { get; set; }
-        public string FullTableNameMySql { get; set; }
+        public List<PropertyInfo> IdentityProperties { get; set; }
+        public List<PropertyInfo> DataProperties { get; set; }
+        public Dictionary<PropertyInfo, SqlPropertyMetadata> PropertyMetadata { get; set; }
     }
 }

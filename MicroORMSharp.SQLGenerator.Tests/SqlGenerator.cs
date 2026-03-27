@@ -5,6 +5,12 @@ namespace MicroORMSharp.SqlGenerator.Tests
     [TestClass]
     public sealed partial class SqlGenerator
     {
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
+        {
+            Database.Initialise();
+        }
+
         private static SqlGenerator<Customers> CreateCustomerGenerator(DatabaseType dbType)
         {
             return new SqlGenerator<Customers>(dbType);

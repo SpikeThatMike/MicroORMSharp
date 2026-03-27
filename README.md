@@ -10,7 +10,6 @@
 Designed to be reduce repetitive SQL and object mapping.
 
 ## Installation
-
 ```bash
 dotnet add package MicroORMSharp
 ```
@@ -74,7 +73,6 @@ Database.RemoveConnectionString("ReportingMySql");
 ```
 
 #### When to use `allowTableExtensions`
-
 Set `allowTableExtensions: true` if you want to use table extension methods:
 
 - `CreateTable()`
@@ -136,6 +134,15 @@ Database.AddConnectionString(
     sqlServerConnection,
     allowTableExtensions: true
 );
+```
+
+## Initialising Database
+Initialise the database classes, this creates a cache of all models & properties instead of doing reflection at runtime to retrieve these. This is recommended to run at the start of your application.
+
+```csharp
+Database.Initialise();
+//or
+SqlGeneratorCache.Initialise();
 ```
 
 ## Creating models

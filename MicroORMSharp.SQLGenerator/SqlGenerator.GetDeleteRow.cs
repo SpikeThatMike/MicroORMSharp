@@ -1,10 +1,7 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace MicroORMSharp.SqlGenerator
 {
@@ -14,7 +11,7 @@ namespace MicroORMSharp.SqlGenerator
         {
             var newQuery = new SqlQuery();
 
-            var identityProps = Properties.Where(prop => prop.GetCustomAttribute<DbIdentity>() != null);
+            var identityProps = IdentityProperties;
 
             if (identityProps == null || !identityProps.Any())
                 throw new InvalidOperationException("No identity column found.");

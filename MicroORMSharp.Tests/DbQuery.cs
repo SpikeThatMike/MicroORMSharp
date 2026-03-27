@@ -1,7 +1,5 @@
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Attributes;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -48,13 +46,22 @@ namespace MicroORMSharp.Tests
                 .OrderBy(x => x.Forename)
                 .ThenByDescending(x => x.Surname);
 
-            var expected = new Dictionary<string, bool>
+            var expected = new List<KeyValuePair<string, bool>>
             {
-                { "Forename", false },
-                { "Surname", true }
+                new("Forename", false),
+                new("Surname", true)
             };
 
-            CollectionAssert.AreEqual(expected.ToList(), query._orderBy.ToList(), "Incorrect order by inside select query");
+            var actual = query._orderBy
+                .Select(x =>
+                {
+                    var expression = (MemberExpression)x.Key.Body;
+                    var name =  ((PropertyInfo)expression.Member).GetCustomAttribute<DbColumn>()?.Name ?? ((PropertyInfo)expression.Member).Name;
+                    return new KeyValuePair<string, bool>(name, x.Value);
+                })
+                .ToList();
+
+            CollectionAssert.AreEqual(expected, actual, "Incorrect order by inside select query");
         }
     }
 }

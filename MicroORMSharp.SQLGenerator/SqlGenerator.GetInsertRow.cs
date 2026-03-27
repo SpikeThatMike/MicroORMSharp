@@ -1,10 +1,9 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace MicroORMSharp.SqlGenerator
 {
@@ -17,15 +16,15 @@ namespace MicroORMSharp.SqlGenerator
             var columnNames = new List<string>();
 
             int count = 0;
-            foreach (var prop in Properties.Where(OnlyDataColumns))
+            foreach (var prop in DataProperties)
             {
                 columnNames.Add(GetPropertyName(prop));
                 newQuery.Parameters.Add($"@p{++count}", prop.GetValue(obj));
             }
 
-            var identityProp = AllProperties.FirstOrDefault(x => x.GetCustomAttribute<DbIdentity>() != null)
+            var identityProp = IdentityProperties.FirstOrDefault()
                 ?? throw new Exception("No identity column found. Please ensure that one property is marked with the DbIdentity attribute.");
-            
+
             newQuery.Query.Append($"INSERT INTO {GetFullTableName()} ({string.Join(", ", columnNames)}) ");
             newQuery.Query.Append($"VALUES ({string.Join(", ", newQuery.Parameters.Select(x => x.Key))});");
             if (returnValue)
@@ -43,14 +42,5 @@ namespace MicroORMSharp.SqlGenerator
             DatabaseType.SqlServer => "SCOPE_IDENTITY()",
             _ => throw new Exception($"Unknown database type: {DatabaseType}")
         };
-
-
-        private bool OnlyDataColumns(PropertyInfo prop)
-        {
-            if (prop.GetCustomAttribute<DbIdentity>() != null)
-                return false;
-
-            return true;
-        }
     }
 }

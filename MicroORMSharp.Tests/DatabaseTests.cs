@@ -10,6 +10,7 @@ namespace MicroORMSharp.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
+            Database.Initialise();
             TestDatabaseFixture.EnsureMySqlConnection();
         }
 

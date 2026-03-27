@@ -34,7 +34,7 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Dictionary<string, bool> _orderBy { get; set; } = new Dictionary<string, bool>();
+        public Dictionary<Expression<Func<T, object>>, bool> _orderBy { get; set; } = new Dictionary<Expression<Func<T, object>>, bool>();
 
         [Browsable(false)]
         [Bindable(false)]
@@ -99,9 +99,7 @@ namespace MicroORMSharp.SqlGenerator
                 throw new ArgumentNullException("Order by expression was null");
             }
 
-            string name = GetPropertyName(column);
-
-            dbQuery._orderBy.Add(name, false);
+            dbQuery._orderBy.Add(column, false);
 
             return dbQuery;
         }
@@ -113,9 +111,7 @@ namespace MicroORMSharp.SqlGenerator
                 throw new ArgumentNullException("Order by expression was null");
             }
 
-            string name = GetPropertyName(column);
-
-            dbQuery._orderBy.Add(name, true);
+            dbQuery._orderBy.Add(column, true);
 
             return dbQuery;
         }
@@ -154,12 +150,6 @@ namespace MicroORMSharp.SqlGenerator
         {
             dbQuery._dbTransaction = dbTransaction ?? throw new ArgumentNullException(nameof(dbTransaction));
             return dbQuery;
-        }
-
-        private static string GetPropertyName<T>(Expression<Func<T, object>> column)
-        {
-            var expression = (MemberExpression)column.Body;
-            return expression.Member.GetCustomAttribute<DbColumn>()?.Name ?? expression.Member.Name;
         }
     }
 }

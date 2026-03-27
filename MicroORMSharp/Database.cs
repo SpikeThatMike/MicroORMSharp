@@ -45,6 +45,11 @@ namespace MicroORMSharp
             }
         }
 
+        public static void Initialise()
+        {
+            SqlGeneratorCache.Initialise();
+        }
+
         public static DbQuery<T> Query<T>()
         {
             return new DbQuery<T>();

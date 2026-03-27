@@ -1,4 +1,5 @@
 using MicroORMSharp.Helpers;
+using MicroORMSharp.SqlGenerator;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace MicroORMSharp.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
+            Database.Initialise();
             TestDatabaseFixture.EnsureMySqlConnection();
         }
 

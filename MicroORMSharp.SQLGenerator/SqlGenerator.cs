@@ -1,8 +1,7 @@
-﻿using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using MicroORMSharp.SqlGenerator.Models;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,17 +10,17 @@ namespace MicroORMSharp.SqlGenerator
 {
     public partial class SqlGenerator<T> where T : IMicroORMSharp
     {
-        private static readonly ConcurrentDictionary<Type, SqlMetadata> _tableCache = new ConcurrentDictionary<Type, SqlMetadata>();
-
         public DatabaseType DatabaseType { get; protected set; }
         public string TableDatabase { get; protected set; }
         public string TableSchema { get; protected set; }
         public string TableName { get; protected set; }
         public List<PropertyInfo> AllProperties { get; protected set; } = new List<PropertyInfo>();
-
         public List<PropertyInfo> Properties { get; protected set; } = new List<PropertyInfo>();
         public List<PropertyInfo> IgnoreProperties { get; protected set; } = new List<PropertyInfo>();
         public List<PropertyInfo> JoinProperties { get; protected set; } = new List<PropertyInfo>();
+        private List<PropertyInfo> IdentityProperties { get; set; } = new List<PropertyInfo>();
+        private List<PropertyInfo> DataProperties { get; set; } = new List<PropertyInfo>();
+        private Dictionary<PropertyInfo, SqlPropertyMetadata> PropertyMetadata { get; set; } = new Dictionary<PropertyInfo, SqlPropertyMetadata>();
         private string _defaultSchema { get; set; } = "dbo";
 
         public string FullTableNameSqlServer { get; set; }
@@ -45,63 +44,21 @@ namespace MicroORMSharp.SqlGenerator
             Type? type = typeof(T)
                 ?? throw new Exception($"{nameof(type)} Type cannot be null");
 
-            if (_tableCache.TryGetValue(type, out SqlMetadata metadata))
-            {
-                TableDatabase = metadata.TableDatabase;
-                TableSchema = metadata.TableSchema;
-                TableName = metadata.TableName;
+            var metadata = SqlGeneratorCache.GetRequiredMetadata(type);
 
-                AllProperties = metadata.AllProperties;
-                Properties = metadata.Properties;
-                IgnoreProperties = metadata.IgnoreProperties;
-                JoinProperties = metadata.JoinProperties;
-
-
-                FullTableNameSqlServer = metadata.FullTableNameSqlServer;
-                FullTableNameMySql = metadata.FullTableNameMySql;
-
-                return;
-            }
-
-            var dbTable = type.GetCustomAttribute<DbTable>()
-                ?? throw new Exception("Entity must have a DbTable attribute");
-
-            TableDatabase = dbTable.Database ?? string.Empty;
-            TableSchema = dbTable.Schema ?? _defaultSchema;
-            TableName = dbTable.Name;
+            TableDatabase = metadata.TableDatabase ?? string.Empty;
+            TableSchema = metadata.TableSchema ?? _defaultSchema;
+            TableName = metadata.TableName;
+            AllProperties = metadata.AllProperties;
+            Properties = metadata.Properties;
+            IgnoreProperties = metadata.IgnoreProperties;
+            JoinProperties = metadata.JoinProperties;
+            IdentityProperties = metadata.IdentityProperties;
+            DataProperties = metadata.DataProperties;
+            PropertyMetadata = metadata.PropertyMetadata;
 
             FullTableNameSqlServer = FormatFullTableName(TableDatabase, TableSchema, TableName, DatabaseType.SqlServer);
             FullTableNameMySql = FormatFullTableName(TableDatabase, string.Empty, TableName, DatabaseType.MySql);
-
-            AllProperties = type.GetProperties().ToList();
-
-            var dbIgnore = typeof(DbIgnore);
-            var dbJoin = typeof(DBJoin);
-
-            foreach (var prop in AllProperties)
-            {
-                bool isIgnore = prop.IsDefined(dbIgnore, true);
-                bool isJoin = prop.IsDefined(dbJoin, true);
-
-                if (isIgnore) IgnoreProperties.Add(prop);
-                else if (isJoin) JoinProperties.Add(prop);
-                else Properties.Add(prop);
-            }
-
-            _tableCache.TryAdd(type, new SqlMetadata
-            {
-                TableDatabase = TableDatabase,
-                TableSchema = TableSchema,
-                TableName = TableName,
-
-                AllProperties = AllProperties,
-                Properties = Properties,
-                IgnoreProperties = IgnoreProperties,
-                JoinProperties = JoinProperties,
-
-                FullTableNameSqlServer = FullTableNameSqlServer,
-                FullTableNameMySql = FullTableNameMySql
-            });
         }
 
         public string GetFullTableName()
@@ -116,19 +73,34 @@ namespace MicroORMSharp.SqlGenerator
 
         public string GetFullTableName(DbTable dbTable)
         {
-            var success = _tableCache.TryGetValue(dbTable.GetType(), out SqlMetadata metaData);
+            return FormatFullTableName(dbTable.Database, dbTable.Schema, dbTable.Name, DatabaseType);
+        }
 
-            if (success)
+        private SqlMetadata GetMetadata(Type type)
+        {
+            return SqlGeneratorCache.GetRequiredMetadata(type);
+        }
+
+        private SqlPropertyMetadata GetPropertyMetadata(PropertyInfo property)
+        {
+            return PropertyMetadata.TryGetValue(property, out var metadata)
+                ? metadata
+                : SqlGeneratorCache.GetRequiredPropertyMetadata(property);
+        }
+
+        private string GetPropertyName(PropertyInfo prop)
+        {
+            return GetPropertyMetadata(prop).ColumnName;
+        }
+
+        private string GetPropertyName(MemberInfo prop)
+        {
+            if (prop is PropertyInfo property)
             {
-                return DatabaseType switch
-                {
-                    DatabaseType.SqlServer => metaData.FullTableNameSqlServer,
-                    DatabaseType.MySql => metaData.FullTableNameMySql,
-                    _ => FormatFullTableName(TableDatabase, TableSchema, TableName, DatabaseType)
-                };
+                return GetPropertyName(property);
             }
 
-            return FormatFullTableName(dbTable.Database, dbTable.Schema, dbTable.Name, DatabaseType);
+            return prop.Name;
         }
 
         private string AddBrackets(string identifier, DatabaseType? databaseType = null)
