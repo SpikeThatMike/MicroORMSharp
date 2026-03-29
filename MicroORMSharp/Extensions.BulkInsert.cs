@@ -31,6 +31,7 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            sqlGenerator.ValidateAttributes(entities);
 
             WithConnection(db =>
             {
@@ -75,6 +76,7 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            sqlGenerator.ValidateAttributes(entities);
 
             await WithConnectionAsync(async db =>
             {

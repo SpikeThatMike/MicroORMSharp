@@ -1,4 +1,5 @@
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.SqlGenerator.Interfaces;
 
 namespace MicroORMSharp.Tests
 {
@@ -27,22 +28,22 @@ namespace MicroORMSharp.Tests
             return TestDatabaseFixture.CreateCustomerBatch();
         }
 
-        private static Task EnsureTableCreatedAsync(Customers customers)
+        private static Task EnsureTableCreatedAsync<T>(T table) where T : IMicroORMSharp
+        {
+            return TestDatabaseFixture.EnsureTableCreatedAsync(table);
+        }
+
+        private static Task EnsureTableCreatedAsync<T>(List<T> customers) where T : IMicroORMSharp
         {
             return TestDatabaseFixture.EnsureTableCreatedAsync(customers);
         }
 
-        private static Task EnsureTableCreatedAsync(List<Customers> customers)
-        {
-            return TestDatabaseFixture.EnsureTableCreatedAsync(customers);
-        }
-
-        private static Task AssertTableDroppedAsync(Customers customers)
+        private static Task AssertTableDroppedAsync<T>(T customers) where T : IMicroORMSharp
         {
             return TestDatabaseFixture.AssertTableDroppedAsync(customers);
         }
 
-        private static Task AssertTableDroppedAsync(List<Customers> customers)
+        private static Task AssertTableDroppedAsync<T>(List<T> customers) where T : IMicroORMSharp
         {
             return TestDatabaseFixture.AssertTableDroppedAsync(customers);
         }

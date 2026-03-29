@@ -10,6 +10,8 @@ namespace MicroORMSharp.SqlGenerator
     {
         public SqlQuery UpdateRow(T obj, bool returnValue = false)
         {
+            ValidateAttributes(obj);
+
             var newQuery = new SqlQuery();
 
             var identityProps = IdentityProperties;
@@ -31,6 +33,12 @@ namespace MicroORMSharp.SqlGenerator
 
             foreach (var prop in DataProperties)
             {
+                if (ShouldUseDefaultValue(prop, obj))
+                {
+                    updateColumns.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = DEFAULT");
+                    continue;
+                }
+
                 var parameter = $"@p{++count}";
 
                 updateColumns.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = {parameter}");

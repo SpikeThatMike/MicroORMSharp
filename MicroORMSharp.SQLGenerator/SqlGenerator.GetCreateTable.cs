@@ -1,6 +1,7 @@
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 
@@ -41,11 +42,11 @@ namespace MicroORMSharp.SqlGenerator
                 Type t when t == typeof(long) => "BIGINT",
                 Type t when t == typeof(double) => "FLOAT",
                 Type t when t == typeof(float) => "REAL",
-                Type t when t == typeof(decimal) => "DECIMAL(18, 2)",
+                Type t when t == typeof(decimal) => GetDecimalSqlType(prop),
                 Type t when t == typeof(bool) => "BIT",
                 Type t when t == typeof(DateTime) => "DATETIME",
                 Type t when t == typeof(Guid) => "UNIQUEIDENTIFIER",
-                Type t when t == typeof(byte[]) => $"VARBINARY({GetDBMaxLength(prop)})",
+                Type t when t == typeof(byte[]) => "VARBINARY(MAX)",
                 _ => throw new NotSupportedException($"The C# type '{prop.Name}' is not supported."),
             };
 
@@ -66,11 +67,21 @@ namespace MicroORMSharp.SqlGenerator
             return GetPropertyMetadata(prop).MaxLength?.ToString() ?? "MAX";
         }
 
+        private string GetDecimalSqlType(PropertyInfo prop)
+        {
+            var metadata = GetPropertyMetadata(prop);
+            var precision = metadata.Precision ?? 18;
+            var scale = metadata.Scale ?? 2;
+
+            return $"DECIMAL({precision}, {scale})";
+        }
+
         private string GetAdditionalProperties(PropertyInfo prop)
         {
             StringBuilder stringBuilder = new StringBuilder();
+            var metadata = GetPropertyMetadata(prop);
 
-            if (GetPropertyMetadata(prop).IsIdentity)
+            if (metadata.IsIdentity)
             {
                 if (DatabaseType == DatabaseType.SqlServer)
                 {
@@ -82,7 +93,49 @@ namespace MicroORMSharp.SqlGenerator
                 }
             }
 
+            if (metadata.DefaultValue != null)
+            {
+                stringBuilder.Append($" DEFAULT {GetSqlDefaultLiteral(prop, metadata.DefaultValue)}");
+            }
+
             return stringBuilder.ToString();
+        }
+
+        private string GetSqlDefaultLiteral(PropertyInfo prop, string defaultValueLiteral)
+        {
+            var propertyType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+            if (propertyType == typeof(string) || propertyType == typeof(Guid) || propertyType == typeof(DateTime))
+            {
+                return $"'{defaultValueLiteral.Replace("'", "''")}'";
+            }
+
+            if (propertyType == typeof(bool))
+            {
+                return bool.Parse(defaultValueLiteral) ? "1" : "0";
+            }
+
+            if (propertyType == typeof(byte) || propertyType == typeof(short) || propertyType == typeof(int) || propertyType == typeof(long))
+            {
+                return Convert.ToString(Convert.ChangeType(defaultValueLiteral, propertyType, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+            }
+
+            if (propertyType == typeof(float))
+            {
+                return float.Parse(defaultValueLiteral, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (propertyType == typeof(double))
+            {
+                return double.Parse(defaultValueLiteral, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (propertyType == typeof(decimal))
+            {
+                return decimal.Parse(defaultValueLiteral, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
+            }
+
+            throw new InvalidOperationException($"Default is not supported for property {prop.DeclaringType?.FullName}.{prop.Name}.");
         }
     }
 }

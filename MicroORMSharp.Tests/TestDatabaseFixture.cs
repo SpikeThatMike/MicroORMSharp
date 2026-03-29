@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.SqlGenerator.Interfaces;
 
 namespace MicroORMSharp.Tests
 {
@@ -54,39 +55,39 @@ namespace MicroORMSharp.Tests
             };
         }
 
-        public static async Task EnsureTableCreatedAsync(Customers customers)
+        public static async Task EnsureTableCreatedAsync<T>(T table) where T : IMicroORMSharp
         {
-            var exists = await customers.TableExistsAsync();
+            var exists = await table.TableExistsAsync();
             if (!exists)
             {
-                await customers.CreateTableAsync();
-                var isCreated = await customers.TableExistsAsync();
+                await table.CreateTableAsync();
+                var isCreated = await table.TableExistsAsync();
                 Assert.IsTrue(isCreated, "Failed to create table");
             }
         }
 
-        public static async Task EnsureTableCreatedAsync(List<Customers> customers)
+        public static async Task EnsureTableCreatedAsync<T>(List<T> table) where T : IMicroORMSharp
         {
-            var exists = await customers.TableExistsAsync();
+            var exists = await table.TableExistsAsync();
             if (!exists)
             {
-                await customers.CreateTableAsync();
-                var isCreated = await customers.TableExistsAsync();
+                await table.CreateTableAsync();
+                var isCreated = await table.TableExistsAsync();
                 Assert.IsTrue(isCreated, "Failed to create table");
             }
         }
 
-        public static async Task AssertTableDroppedAsync(Customers customers)
+        public static async Task AssertTableDroppedAsync<T>(T table) where T : IMicroORMSharp
         {
-            await customers.DropTableAsync();
-            var isDeleted = await customers.TableExistsAsync();
+            await table.DropTableAsync();
+            var isDeleted = await table.TableExistsAsync();
             Assert.IsFalse(isDeleted, "Failed to delete table");
         }
 
-        public static async Task AssertTableDroppedAsync(List<Customers> customers)
+        public static async Task AssertTableDroppedAsync<T>(List<T> table) where T : IMicroORMSharp
         {
-            await customers.DropTableAsync();
-            var isDeleted = await customers.TableExistsAsync();
+            await table.DropTableAsync();
+            var isDeleted = await table.TableExistsAsync();
             Assert.IsFalse(isDeleted, "Failed to delete table");
         }
 
