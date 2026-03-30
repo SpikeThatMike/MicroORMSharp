@@ -106,7 +106,7 @@ namespace MicroORMSharp
             }, dbQuery);
         }
 
-        private static TResult WithQueryConnection<T, TResult>(Func<IDbConnection, TResult> action, DbQuery<T> dbQuery)
+        private static TResult WithQueryConnection<T, TResult>(Func<IDbConnection, TResult> action, DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             var existingConnection = dbQuery._dbConnection ?? dbQuery._dbTransaction?.Connection;
             if (existingConnection != null)
@@ -117,7 +117,7 @@ namespace MicroORMSharp
             return WithConnection(action);
         }
 
-        private static async Task<TResult> WithQueryConnectionAsync<T, TResult>(Func<IDbConnection, Task<TResult>> action, DbQuery<T> dbQuery)
+        private static async Task<TResult> WithQueryConnectionAsync<T, TResult>(Func<IDbConnection, Task<TResult>> action, DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             var existingConnection = dbQuery._dbConnection ?? dbQuery._dbTransaction?.Connection;
             if (existingConnection != null)

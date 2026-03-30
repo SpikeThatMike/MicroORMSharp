@@ -247,7 +247,6 @@ Database.SetDefaultCancellationToken(cancellationToken);
 
 ## Insert, update, and delete
 The entity extension methods are the main write API.
-If you are using `DbDefault`, `DbPrecision`, or `DbMaxLength`, see the column attribute section after the table helper methods below.
 ### Insert
 `Insert` / `InsertAsync` returns the inserted entity, including the generated identity value where supported.
 
@@ -325,39 +324,6 @@ await customers.CreateTableAsync();
 await customers.TruncateTableAsync();
 await customers.DropTableAsync();
 ```
-
-## Column attributes
-You can control column definitions with attributes on your class properties.
-
-```csharp
-[DbTable("AttributeTable")]
-public class AttributeTable : IMicroORMSharp
-{
-    [DbIdentity]
-    public long Id { get; set; }
-
-    [DbMaxLength(20)]
-    [DbDefault("guest")]
-    public string? Name { get; set; }
-
-    [DbPrecision(10, 3)]
-    [DbDefault(12.345)]
-    public decimal? Amount { get; set; }
-
-    [DbDefault(7)]
-    public int? Quantity { get; set; }
-
-    [DbDefault(true)]
-    public bool? IsEnabled { get; set; }
-}
-```
-
-- `DbMaxLength(x)` applies to string properties and generates `VARCHAR(x)`.
-- `DbPrecision(x, y)` applies to decimal properties and generates `DECIMAL(x, y)`.
-- `DbDefault(value)` adds a database `DEFAULT` constraint for supported scalar types.
-- If a nullable property with `DbDefault(...)` is `null` during insert or update, MicroORMSharp emits SQL `DEFAULT` for that column.
-- If a string value exceeds `DbMaxLength`, MicroORMSharp throws an `InvalidOperationException` before the command is sent to the database.
-- When the `DbMaxLength` attribute is specified on a string property, it will be validate the length of the string value against the defined max length before executing an insert or update. If the value exceeds the limit, an `InvalidOperationException` error with a message indicating that the value exceeds the maximum allowed length for that property.
 
 ## Passing your own connection
 The write and table extension methods accept an explicit `IDbConnection` through `dbConnection`.
@@ -531,6 +497,12 @@ var customers = await Database.Query<CustomerWithOrders>().ExecuteAsync();
 
 You can specify `DBJoinType.Inner`, `DBJoinType.Left`, `DBJoinType.Right` for joins.
 Nested joins are supported up to 3 levels deep. Queries that exceed that limit throw an `InvalidOperationException`.
+
+## Additional helpers
+```csharp
+var sqlQuery = DbQuery<T>().GetSqlQuery(); //Get the underlying SQL code used for the SQL query
+var sqlParameters = DbQuery<T>().GetSqlParameters(); //Get the underlying parameters used for the SQL query
+```
 
 ## Issues
 If you find a bug or want to suggest an improvement, please open an issue or pull request.

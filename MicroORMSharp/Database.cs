@@ -1,6 +1,7 @@
 ﻿using MicroORMSharp.ExampleModels;
 using MicroORMSharp.Models;
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.SqlGenerator.Interfaces;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using System;
@@ -50,7 +51,7 @@ namespace MicroORMSharp
             SqlGeneratorCache.Initialise();
         }
 
-        public static DbQuery<T> Query<T>()
+        public static DbQuery<T> Query<T>() where T : IMicroORMSharp
         {
             return new DbQuery<T>();
         }

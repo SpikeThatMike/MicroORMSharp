@@ -1,9 +1,24 @@
-﻿DONE: Timeouts support on class extensions
-DONE: Transaction support on class extensions
+﻿Retry policy methods
+- For transient exceptions in database operations
+- These methods can be used to implement retry logic in case of transient failures, such as network issues or temporary unavailability of the database.
+- Defaults to 0 retries but can be set per DbQuery ".SetRetryPolicy()" (overrides global if specified) or globally for all queries Database.UseRetryPolicy(3);
 
-IN PROGRESS: Create cache system for SqlGenerator so it doesn't need to fetch the properties every time
--- Continue to make improvements on the cache system
+Pagination methods
+- For paginating query results
+- Add onto a DbQuery to specify pagination parameters, such as page number and page size .SetPagination(pageNumber: 2, pageSize: 10);
+- This will use OFFSET AND LIMIT
 
-TODO: Complete tests for DapperWraapper (MySql)
-TODO: Create tests for Database class / ensure joins work fine
+Partial updates
+- For updating only specific fields of an entity
+- Specify which fields to update in an update operation, .UpdateAsync(x => new { x.Name, x.Email });
+- By default UpdateAsync updates all fields except properties with Identity
 
+Database Transaction wrapper
+- For executing multiple operations within a transaction without the user having to manage the transaction scope manually
+- Returns true or false if the transaction was successful or not, and rolls back if any operation fails from an internal try catch block
+- var result = await Database.WithTransaction(async trans => { await customer.InsertAsync(trans); await customer.UpdateAsync(trans); });
+
+Map the data into a different class
+- For mapping query results into a different class than the entity class
+- Add onto DbQuery, SelectTo method which will allow the user to specifiy what the data should map to.
+- .SelectTo(x => new CustomerTest { Name = x.Forename + " " + x.Surname })
