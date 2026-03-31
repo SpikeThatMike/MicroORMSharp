@@ -8,11 +8,6 @@ Pagination methods
 - Add onto a DbQuery to specify pagination parameters, such as page number and page size .SetPagination(pageNumber: 2, pageSize: 10);
 - This will use OFFSET AND LIMIT
 
-Partial updates
-- For updating only specific fields of an entity
-- Specify which fields to update in an update operation, .UpdateAsync(x => new { x.Name, x.Email });
-- By default UpdateAsync updates all fields except properties with Identity
-
 Database Transaction wrapper
 - For executing multiple operations within a transaction without the user having to manage the transaction scope manually
 - Returns true or false if the transaction was successful or not, and rolls back if any operation fails from an internal try catch block
