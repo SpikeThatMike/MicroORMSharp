@@ -296,11 +296,17 @@ customer.Forename = "Jane";
 
 customer = customer.Update();
 customer = await customer.UpdateAsync();
+customer = customer.Update(x => new { x.Forename, x.Postcode });
+customer = await customer.UpdateAsync(x => new { x.Forename, x.Postcode });
 
 //If you only want to execute the update:
 customer.UpdateOnly();
 await customer.UpdateOnlyAsync();
+customer.UpdateOnly(x => new { x.Forename, x.Postcode });
+await customer.UpdateOnlyAsync(x => new { x.Forename, x.Postcode });
 ```
+When a selector is supplied, only the chosen mapped, non-identity columns are included in the `UPDATE` statement.
+By default when an update is executed, all mapped, non-identity columns are included in the `UPDATE` statement.
 
 ### Delete
 ```csharp

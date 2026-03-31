@@ -65,6 +65,7 @@ namespace MicroORMSharp.Tests
         }
 
         [TestMethod]
+        [DoNotParallelize]
         public void DbQuery_GetSql_GetParameters_MySql()
         {
             SqlGeneratorCache.Initialise();
@@ -97,6 +98,7 @@ namespace MicroORMSharp.Tests
         }
 
         [TestMethod]
+        [DoNotParallelize]
         public void DbQuery_GetSql_GetParameters_SqlServer()
         {
             SqlGeneratorCache.Initialise();

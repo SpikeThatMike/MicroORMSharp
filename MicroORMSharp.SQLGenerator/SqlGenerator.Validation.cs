@@ -1,6 +1,7 @@
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace MicroORMSharp.SqlGenerator
@@ -15,6 +16,24 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             foreach (var prop in DataProperties)
+            {
+                ValidateProp(prop, obj);
+            }
+        }
+
+        public void ValidateAttributes(T obj, IEnumerable<PropertyInfo> properties)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            foreach (var prop in properties.Distinct())
             {
                 ValidateProp(prop, obj);
             }

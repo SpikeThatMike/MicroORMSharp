@@ -53,5 +53,41 @@ namespace MicroORMSharp.SqlGenerator.Tests
                 "Update row queries do not match"
             );
         }
+
+        [TestMethod]
+        public void UpdateRow_SelectedColumns_MySql()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.MySql);
+            var sqlQuery = sqlGenerator.UpdateRow(CreateCustomer(), x => new { x.Forename, x.Postcode }, false);
+
+            AssertQuery(
+                sqlQuery,
+                "UPDATE `Customers` SET `Customers`.`Forename` = @p2, `Customers`.`Postalcode` = @p3 WHERE `Customers`.`Id` = @p1;",
+                "Partial update row queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void UpdateSelectRow_SelectedColumns_SqlServer()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.SqlServer);
+            var sqlQuery = sqlGenerator.UpdateRow(CreateCustomer(), x => new { x.Forename, x.Postcode }, true);
+
+            AssertQuery(
+                sqlQuery,
+                "UPDATE [dbo].[Customers] SET [Customers].[Forename] = @p2, [Customers].[Postalcode] = @p3 WHERE [Customers].[Id] = @p1; SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] WHERE [Customers].[Id] = @p1;",
+                "Partial update row queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void UpdateRow_SelectedColumns_RejectsIdentity()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.MySql);
+
+            var ex = Assert.ThrowsException<InvalidOperationException>(() => sqlGenerator.UpdateRow(CreateCustomer(), x => new { x.Id, x.Forename }, false));
+
+            StringAssert.Contains(ex.Message, "Invalid selections: Id");
+        }
     }
 }
