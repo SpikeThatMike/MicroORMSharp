@@ -1,4 +1,4 @@
-# MicroORMSharp
+﻿# MicroORMSharp
 **MicroORMSharp** is a lightweight micro ORM for .NET built on top of Dapper. It focuses on the common operations
 - CRUD operations (inserts, updates, deletes)
 - Querying with LINQ-style API
@@ -9,15 +9,28 @@
 
 Designed to be reduce repetitive SQL and object mapping.
 
+| Databases | Supported |
+| --- | --- |
+| MySQL | ✅ |
+| SQL Server | ⚠ |
+| Others | ❌ |
+
+
+### ⚠SQL Server support⚠
+> SQL Server integration has not been fully tested and may have unwanted side effects, unexpected behavior, or provider-specific issues. If you use SQL Server, test carefully in a non-production environment before relying on it in live systems.
+> The main reason for this I use a locally hosted MySQL for my projects and do not currently have access to a SQL server database
+
+### Supported versions
+| Version | Supported .NET versions |
+| --- | --- |
+| `1.x` | `.NET Core 3.0`, `.NET 5`, `.NET 6`, `.NET 7`, `.NET 8`, `.NET 9`, `.NET 10` |
+
+`MicroORMSharp` currently targets `.NET Standard 2.1`, so `.NET Framework` is not supported by the `1.x` package line.
+
 ## Installation
 ```bash
 dotnet add package MicroORMSharp
 ```
-
-## Supported databases
-
-- MySQL
-- SQL Server (untested)
 
 ## How MicroORMSharp works
 1. Register your connection string.
@@ -209,10 +222,28 @@ var activeCustomerCount = await Database.Query<Customer>()
 ```
 
 ### Selecting columns
-You can select specific columns if you don't want to query the whole class
+`Select` allows you to specify which columns to query while still returning the entity type. This is useful when you only need a subset of the columns for read-only operations, and want to avoid querying unnecessary data.
+`SelectTo` allows you to project the result into a different class, which is useful when you want to return a custom shape of data that doesn't match the entity type, such as a DTO or an anonymous type. This can help reduce over-fetching and improve performance by only querying the columns that are needed for the projection.
+You can use either `Select` or `SelectTo` depending on your needs, if you use both, an exception is thrown.
+
+`Select` can be used anywhere in the query chain
+`SelectTo` can only be used last in the query chain before `Execute`, `ExecuteAsync`, `ExecuteSingle`, or `ExecuteSingleAsync`. This is because `SelectTo` switches from `DbQuery<T>` into a projection wrapper that is responsible for the final mapping step.
+
+Similar to `Select`, `SelectTo` will only query the columns needed for the projection.
+
 ```csharp
+// Select keeps the result as Customer
 var customers = await Database.Query<Customer>()
     .Select(x => x.Id, x => x.Forename, x => x.Surname)
+    .ExecuteAsync();
+
+// SelectTo maps the result into a different class
+var customerNames = await Database.Query<Customer>()
+    .Where(x => x.Active)
+    .SelectTo(x => new CustomerName
+    {
+        Name = x.Forename + " " + x.Surname
+    })
     .ExecuteAsync();
 ```
 
@@ -527,6 +558,8 @@ var sqlParameters = DbQuery<T>().GetSqlParameters(); //Get the underlying parame
 
 ## Issues
 If you find a bug or want to suggest an improvement, please open an issue or pull request.
+
+> This package is provided as-is, without guarantees of any kind, and you are responsible for validating its behavior in your environment before production use. The authors and contributors are not liable for data loss, downtime, corruption, security issues, financial loss, or other damages resulting from use of the package.
 
 ## Author
 - [@SpikeThatMike](https://github.com/SpikeThatMike)

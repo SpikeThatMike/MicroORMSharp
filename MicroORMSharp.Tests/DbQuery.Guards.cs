@@ -1,4 +1,5 @@
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Models;
 using System;
 using System.Linq.Expressions;
 
@@ -40,6 +41,33 @@ namespace MicroORMSharp.Tests
             Expression<Func<Customers, object>> orderBy = null!;
 
             Assert.ThrowsException<ArgumentNullException>(() => query.OrderByDescending(orderBy));
+        }
+
+        [TestMethod]
+        public void DbQuery_SelectTo_SelectorIsNull()
+        {
+            var query = new DbQuery<Customers>();
+            Expression<Func<Customers, CustomerName>> selector = null!;
+
+            Assert.ThrowsException<ArgumentNullException>(() => query.SelectTo(selector));
+        }
+
+        [TestMethod]
+        public void DbQuery_SelectTo_SelectAlreadyUsed()
+        {
+            var query = new DbQuery<Customers>()
+                .Select(x => x.Forename);
+
+            Assert.ThrowsException<InvalidOperationException>(() => query.SelectTo(x => new CustomerName { Name = x.Forename }));
+        }
+
+        [TestMethod]
+        public void DbQuery_Select_SelectToAlreadyUsed()
+        {
+            var query = new DbQuery<Customers>();
+            query.SelectTo(x => new CustomerName { Name = x.Forename });
+
+            Assert.ThrowsException<InvalidOperationException>(() => query.Select(x => x.Surname));
         }
     }
 }

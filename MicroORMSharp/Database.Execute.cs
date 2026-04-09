@@ -71,6 +71,28 @@ namespace MicroORMSharp
             }, dbQuery);
         }
 
+        public static IEnumerable<Result> Execute<T, Result>(this DbProjectionQuery<T, Result> dbQuery) where T : IMicroORMSharp
+        {
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            var selector = dbQuery.Selector.Compile();
+            return dbQuery.Query.Execute().Select(selector).ToList();
+        }
+
+        public static async Task<IEnumerable<Result>> ExecuteAsync<T, Result>(this DbProjectionQuery<T, Result> dbQuery) where T : IMicroORMSharp
+        {
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            var selector = dbQuery.Selector.Compile();
+            return (await dbQuery.Query.ExecuteAsync()).Select(selector).ToList();
+        }
+
         private static IEnumerable<T> ExecuteJoin<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
         {
             var sqlQuery = sqlGenerator.Select(dbQuery);

@@ -60,12 +60,43 @@ namespace MicroORMSharp.SqlGenerator
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public IDbTransaction? _dbTransaction { get; set; } = null;
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool _hasSelectTo { get; set; } = false;
+    }
+
+    public class DbProjectionQuery<TSource, TResult> where TSource : IMicroORMSharp
+    {
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public DbQuery<TSource> Query { get; set; } = null!;
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Expression<Func<TSource, TResult>> Selector { get; set; } = null!;
     }
 
     public static class DbQueryExtensions
     {
         public static DbQuery<T> Select<T>(this DbQuery<T> dbQuery, params Expression<Func<T, object>>[] columns) where T : IMicroORMSharp
         {
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            if (dbQuery._hasSelectTo)
+            {
+                throw new InvalidOperationException("Select and SelectTo cannot be used on the same DbQuery.");
+            }
+
             if (columns.Any())
             {
                 dbQuery._selectClause = columns.Select(column => ((MemberExpression)column.Body).Member);
@@ -153,6 +184,37 @@ namespace MicroORMSharp.SqlGenerator
             return dbQuery;
         }
 
+        public static DbProjectionQuery<T, Result> SelectTo<T, Result>(this DbQuery<T> dbQuery, Expression<Func<T, Result>> selector) where T : IMicroORMSharp
+        {
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            if (dbQuery._selectClause?.Any() == true)
+            {
+                throw new InvalidOperationException("Select and SelectTo cannot be used on the same DbQuery.");
+            }
+
+            dbQuery._hasSelectTo = true;
+            var selectedMembers = SelectToMemberVisitor.GetMembers(selector);
+            if (selectedMembers.Any())
+            {
+                dbQuery._selectClause = selectedMembers;
+            }
+
+            return new DbProjectionQuery<T, Result>
+            {
+                Query = dbQuery,
+                Selector = selector
+            };
+        }
+
         public static string GetSqlQuery<T>(this DbQuery<T> dbQuery, DatabaseType database) where T : IMicroORMSharp
         {
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(database);
@@ -165,6 +227,34 @@ namespace MicroORMSharp.SqlGenerator
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(DatabaseType.MySql);
             var sqlQuery = sqlGenerator.Select(dbQuery);
             return sqlQuery.Parameters;
+        }
+
+        private sealed class SelectToMemberVisitor : ExpressionVisitor
+        {
+            private readonly List<MemberInfo> _members = new List<MemberInfo>();
+            private readonly ParameterExpression _parameter;
+
+            private SelectToMemberVisitor(ParameterExpression parameter)
+            {
+                _parameter = parameter;
+            }
+
+            public static IEnumerable<MemberInfo> GetMembers<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
+            {
+                var visitor = new SelectToMemberVisitor(selector.Parameters.Single());
+                visitor.Visit(selector.Body);
+                return visitor._members.Distinct().ToList();
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression == _parameter && node.Member is PropertyInfo)
+                {
+                    _members.Add(node.Member);
+                }
+
+                return base.VisitMember(node);
+            }
         }
     }
 }

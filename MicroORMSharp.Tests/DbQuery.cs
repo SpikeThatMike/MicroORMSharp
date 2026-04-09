@@ -1,5 +1,6 @@
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Attributes;
+using MicroORMSharp.Tests.Models;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -62,6 +63,38 @@ namespace MicroORMSharp.Tests
                 .ToList();
 
             CollectionAssert.AreEqual(expected, actual, "Incorrect order by inside select query");
+        }
+
+        [TestMethod]
+        public void DbQuery_SelectTo()
+        {
+            var projectedQuery = new DbQuery<Customers>()
+                .SelectTo(x => new CustomerName { Name = x.Forename + " " + x.Surname });
+
+            var result = projectedQuery.Selector.Compile()(new Customers { Forename = "John", Surname = "Doe" });
+            var selectedColumns = projectedQuery.Query._selectClause.Select(x => x.GetCustomAttribute<DbColumn>()?.Name ?? x.Name).ToList();
+
+            Assert.IsNotNull(projectedQuery.Query, "Query did not keep the original query");
+            CollectionAssert.AreEqual(new List<string> { "Forename", "Surname" }, selectedColumns, "Query selected the wrong columns");
+            Assert.AreEqual("John Doe", result.Name, "Selector returned the wrong value");
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public void DbQuery_SelectTo_Columns_MySql()
+        {
+            SqlGeneratorCache.Initialise();
+
+            var projectedQuery = new DbQuery<Customers>()
+                .SelectTo(x => new CustomerName { Name = x.Forename + " " + x.Surname });
+
+            string sql = projectedQuery.Query.GetSqlQuery(DatabaseType.MySql);
+
+            Assert.AreEqual(
+                "SELECT `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname` FROM `Customers`",
+                sql,
+                "SelectTo should only query the specified columns"
+            );
         }
 
         [TestMethod]

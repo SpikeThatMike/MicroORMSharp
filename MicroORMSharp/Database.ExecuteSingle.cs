@@ -63,5 +63,37 @@ namespace MicroORMSharp
                 ));
             }, dbQuery);
         }
+
+        public static Result ExecuteSingle<T, Result>(this DbProjectionQuery<T, Result> dbQuery) where T : IMicroORMSharp
+        {
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            var result = dbQuery.Query.ExecuteSingle();
+            if (result == null)
+            {
+                return default!;
+            }
+
+            return dbQuery.Selector.Compile()(result);
+        }
+
+        public static async Task<Result> ExecuteSingleAsync<T, Result>(this DbProjectionQuery<T, Result> dbQuery) where T : IMicroORMSharp
+        {
+            if (dbQuery == null)
+            {
+                throw new ArgumentNullException(nameof(dbQuery));
+            }
+
+            var result = await dbQuery.Query.ExecuteSingleAsync();
+            if (result == null)
+            {
+                return default!;
+            }
+
+            return dbQuery.Selector.Compile()(result);
+        }
     }
 }
