@@ -56,6 +56,7 @@ namespace MicroORMSharp
             return new DbQuery<T>();
         }
 
+        #region Connections
         public static IDbConnection GetConnection()
         {
             if (_currentConnection == null)
@@ -96,17 +97,9 @@ namespace MicroORMSharp
             db.Open();
             return await getData(db);
         }
+        #endregion
 
-        public static DatabaseType GetDatabaseType()
-        {
-            return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
-        }
-
-        public static bool GetTableExtensionsOption()
-        {
-            return _currentConnection?.AllowTableExtensions ?? false;
-        }
-
+        #region Connection String Management
         public static void AddConnectionString(DatabaseType databaseType, string reference, string sqlConnection, bool allowTableExtensions = false, bool connectionTest = true)
         {
             if (_connections.Any(x => x.Reference == reference))
@@ -183,7 +176,9 @@ namespace MicroORMSharp
         {
             return _connections;
         }
+        #endregion
 
+        #region Defaults
         public static void SetDefaultTimeout(int timeout)
         {
             if (timeout < 0 || timeout > 86400)
@@ -208,5 +203,78 @@ namespace MicroORMSharp
 
             _defaultCancellationToken = token;
         }
+        #endregion
+
+        #region Transactions
+        public static bool WithTransaction(Action<IDbTransaction> action, IDbConnection dbConnection = null)
+        {
+            var conn = dbConnection ?? GetConnection();
+            bool ownConnection = dbConnection == null;
+
+            conn.Open();
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                action(transaction);
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                return false;
+            }
+            finally
+            {
+                if (ownConnection)
+                {
+                    conn.Dispose();
+                }
+            }
+        }
+
+        public static async Task<bool> WithTransactionAsync(Func<IDbTransaction, Task> action, IDbConnection dbConnection = null)
+        {
+            var conn = dbConnection ?? GetConnection();
+            bool ownConnection = dbConnection == null;
+
+            conn.Open();
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                await action(transaction);
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                return false;
+            }
+            finally
+            {
+                if (ownConnection)
+                {
+                    conn.Dispose();
+                }
+            }
+        }
+        #endregion
+
+        #region Helper methods
+        public static DatabaseType GetDatabaseType()
+        {
+            return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
+        }
+
+        public static bool GetTableExtensionsOption()
+        {
+            return _currentConnection?.AllowTableExtensions ?? false;
+        }
+        #endregion
     }
 }

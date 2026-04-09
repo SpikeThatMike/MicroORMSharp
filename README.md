@@ -412,6 +412,21 @@ catch
 ```
 This is the best approach when several operations must succeed or fail together.
 
+### Alteratively you can use the built in `Database.WithTransactionAsync` method.
+This will return true if the transaction commited or false if the transaction rolled back
+```csharp
+var result = await Database.WithTransactionAsync(async transaction =>
+{
+    await customer.InsertAsync(dbTransaction: transaction);
+});
+
+var result = await Database.WithTransactionAsync(async transaction =>
+{
+    await customer.InsertAsync(dbTransaction: transaction);
+    transaction.Commit() //dont commit or rollback here otherwise it will throw an error that the transaction has already been commited/rolled back
+});
+```
+
 ## Using raw Dapper through `Database.Dapper`
 MicroORMSharp includes a Dapper wrapper so you can mix higher-level ORM helpers with raw SQL in the same codebase. Available wrappers include:
 - `Execute` / `ExecuteAsync`
