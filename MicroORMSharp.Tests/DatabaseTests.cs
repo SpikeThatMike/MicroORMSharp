@@ -301,6 +301,42 @@ namespace MicroORMSharp.Tests
             }
         }
 
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task DbQueryMethods_Pagination_MySql()
+        {
+            TestDatabaseFixture.UseMySqlConnection();
+
+            var customers = TestDatabaseFixture.CreateCustomerBatch();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
+
+            try
+            {
+                await customers.InsertAsync();
+
+                var query1st = Database.Query<Customers>()
+                    .OrderByDescending(x => x.Id)
+                    .SetPagination(2, 1);
+
+                var query2nd = Database.Query<Customers>()
+                    .OrderBy(x => x.Id)
+                    .SetPagination(2, 1);
+
+                var result1st = await query1st.ExecuteAsync();
+                var result2nd = await query2nd.ExecuteAsync();
+
+                Assert.AreEqual(1, result1st.Count(), "Incorrect number of rows for 1st page");
+                Assert.AreEqual(1, result2nd.Count(), "Incorrect number of rows for 2nd page");
+
+                Assert.AreEqual(1, result1st.First().Id, "Incorrect row for 1st page");
+                Assert.AreEqual(2, result1st.First().Id, "Incorrect row for 2nd page");
+            }
+            finally
+            {
+                await TestDatabaseFixture.AssertTableDroppedAsync(customers);
+            }
+        }
+
         private static async Task EnsureTableCreatedAsync<T>(T entity) where T : IMicroORMSharp
         {
             if (!await entity.TableExistsAsync())

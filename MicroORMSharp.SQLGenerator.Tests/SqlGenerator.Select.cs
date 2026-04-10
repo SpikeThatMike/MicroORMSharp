@@ -166,5 +166,79 @@ namespace MicroORMSharp.SqlGenerator.Tests
             var ex = Assert.ThrowsException<InvalidOperationException>(() => sqlGenerator.Select(dbQuery));
             Assert.AreEqual($"Nested joins are limited to {DBJoin.MaxDepth} levels.", ex.Message, "Unexpected nested join depth message");
         }
+
+        [TestMethod]
+        public void SetPagination_MySql()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.MySql);
+            var dbQuery = new DbQuery<Customers>().SetPagination(pageNumber: 2, pageSize: 10);
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` LIMIT 10 OFFSET 10",
+                "Pagination queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void SetPagination_SqlServer()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.SqlServer);
+            var dbQuery = new DbQuery<Customers>().SetPagination(pageNumber: 2, pageSize: 10);
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] ORDER BY [Customers].[Id] ASC OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY",
+                "Pagination queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void SetPagination_SqlServer_UsesExplicitOrdering()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.SqlServer);
+            var dbQuery = new DbQuery<Customers>()
+                .OrderByDescending(x => x.Forename)
+                .SetPagination(pageNumber: 3, pageSize: 5);
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] ORDER BY [Customers].[Forename] DESC OFFSET 10 ROWS FETCH NEXT 5 ROWS ONLY",
+                "Pagination queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void OrderBy_ValueType_MySql()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.MySql);
+            var dbQuery = new DbQuery<Customers>()
+                .OrderBy(x => x.Id);
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` ORDER BY `Customers`.`Id` ASC",
+                "Order by queries do not match"
+            );
+        }
+
+        [TestMethod]
+        public void OrderBy_ValueType_SqlServer()
+        {
+            var sqlGenerator = CreateCustomerGenerator(DatabaseType.SqlServer);
+            var dbQuery = new DbQuery<Customers>()
+                .OrderBy(x => x.Id);
+
+            var sqlQuery = sqlGenerator.Select(dbQuery);
+            AssertQuery(
+                sqlQuery,
+                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] ORDER BY [Customers].[Id] ASC",
+                "Order by queries do not match"
+            );
+        }
     }
 }

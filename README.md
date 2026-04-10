@@ -247,8 +247,8 @@ var customerNames = await Database.Query<Customer>()
     .ExecuteAsync();
 ```
 
-### Filtering, ordering, and limiting
-You can add where clauses, order by columns and take top results
+### Filtering, ordering, limiting, and pagination
+You can add where clauses, order by columns, take top results, and paginate query results.
 ```csharp
 var customers = await Database.Query<Customer>()
     .Where(x => x.Id > 10 && x.Active)
@@ -262,7 +262,18 @@ var customers = await Database.Query<Customer>()
 var customers = await Database.Query<Customer>()
     .Take(10)
     .ExecuteAsync();
+
+var customers = await Database.Query<Customer>()
+    .OrderBy(x => x.Id)
+    .SetPagination(pageNumber: 2, pageSize: 10)
+    .ExecuteAsync();
 ```
+
+`SetPagination(pageNumber, pageSize)` calculates the correct offset for you.
+- MySQL uses `LIMIT ... OFFSET ...`
+- SQL Server uses `ORDER BY ... OFFSET ... ROWS FETCH NEXT ... ROWS ONLY`
+
+For SQL Server pagination a ORDER BY clause is required, if you do not specify one, it will fall back to the identity column or the first column when no identity is found.
 
 ### Timeout and cancellation token
 You can set timeout and cancellation token per query or default them

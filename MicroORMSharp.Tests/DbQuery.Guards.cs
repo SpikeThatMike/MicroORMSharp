@@ -69,5 +69,22 @@ namespace MicroORMSharp.Tests
 
             Assert.ThrowsException<InvalidOperationException>(() => query.Select(x => x.Surname));
         }
+
+        [TestMethod]
+        public void DbQuery_SetPagination_PageNumberIsLessThanOne()
+        {
+            var query = new DbQuery<Customers>();
+
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => query.SetPagination(0, 10));
+        }
+
+        [TestMethod]
+        public void DbQuery_SetPagination_PageSizeIsLessThanOne()
+        {
+            var query = new DbQuery<Customers>();
+
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => query.SetPagination(1, 0));
+        }
+
     }
 }

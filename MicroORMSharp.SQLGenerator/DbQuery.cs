@@ -35,6 +35,12 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
+        public int? _offset { get; set; }
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Dictionary<Expression<Func<T, object>>, bool> _orderBy { get; set; } = new Dictionary<Expression<Func<T, object>>, bool>();
 
         [Browsable(false)]
@@ -120,6 +126,25 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             dbQuery._take = count;
+            dbQuery._offset = null;
+
+            return dbQuery;
+        }
+
+        public static DbQuery<T> SetPagination<T>(this DbQuery<T> dbQuery, int pageNumber, int pageSize) where T : IMicroORMSharp
+        {
+            if (pageNumber < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than or equal to 1");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than or equal to 1");
+            }
+
+            dbQuery._take = pageSize;
+            dbQuery._offset = (pageNumber - 1) * pageSize;
 
             return dbQuery;
         }

@@ -43,8 +43,9 @@ namespace MicroORMSharp.SqlGenerator
         public SqlQuery Select(DbQuery<T> dbQuery)
         {
             var sqlQuery = new SqlQuery("SELECT");
+            var hasPagination = dbQuery._offset.HasValue && dbQuery._take.HasValue;
 
-            if (DatabaseType == DatabaseType.SqlServer && dbQuery._take != null)
+            if (DatabaseType == DatabaseType.SqlServer && dbQuery._take != null && !hasPagination)
             {
                 sqlQuery.Query.Append($" TOP ({dbQuery._take})");
             }
@@ -79,18 +80,49 @@ namespace MicroORMSharp.SqlGenerator
                 sqlQuery.Query.Append($" WHERE {filter.ToString()}");
             }
 
-            if (dbQuery._orderBy.Any())
+            var orderByClause = GetOrderByClause(dbQuery, hasPagination);
+            if (!string.IsNullOrEmpty(orderByClause))
             {
                 sqlQuery.Query.Append(" ORDER BY ");
-                sqlQuery.Query.Append(string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(x.Key))} {(x.Value ? "DESC" : "ASC")}")));
+                sqlQuery.Query.Append(orderByClause);
             }
 
-            if (DatabaseType == DatabaseType.MySql && dbQuery._take != null)
+            if (DatabaseType == DatabaseType.MySql)
             {
-                sqlQuery.Query.Append($" LIMIT {dbQuery._take}");
+                if (hasPagination)
+                {
+                    sqlQuery.Query.Append($" LIMIT {dbQuery._take} OFFSET {dbQuery._offset}");
+                }
+                else if (dbQuery._take != null)
+                {
+                    sqlQuery.Query.Append($" LIMIT {dbQuery._take}");
+                }
+            }
+
+            if (DatabaseType == DatabaseType.SqlServer && hasPagination)
+            {
+                sqlQuery.Query.Append($" OFFSET {dbQuery._offset} ROWS FETCH NEXT {dbQuery._take} ROWS ONLY");
             }
 
             return sqlQuery;
+        }
+
+        private string GetOrderByClause(DbQuery<T> dbQuery, bool hasPagination)
+        {
+            if (dbQuery._orderBy.Any())
+            {
+                return string.Join(", ", dbQuery._orderBy.Select(x => $"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(x.Key))} {(x.Value ? "DESC" : "ASC")}"));
+            }
+
+            if (!hasPagination || DatabaseType != DatabaseType.SqlServer)
+            {
+                return string.Empty;
+            }
+
+            var fallbackProperty = IdentityProperties.FirstOrDefault() ?? Properties.FirstOrDefault()
+                ?? throw new InvalidOperationException($"Unable to determine an ORDER BY column for paginated query.");
+
+            return $"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(fallbackProperty))} ASC";
         }
 
         private IEnumerable<string> GenerateSelectClause(string tableName, IEnumerable<MemberInfo> memberInfo)
@@ -364,12 +396,28 @@ namespace MicroORMSharp.SqlGenerator
                 : string.Empty;
         }
 
-        private static string GetPropertyName<T>(Expression<Func<T, object>> column)
+        private static string GetPropertyName<TSource>(Expression<Func<TSource, object>> column)
         {
-            var expression = (MemberExpression)column.Body;
+            var expression = UnwrapMemberExpression(column.Body);
             return expression.Member is PropertyInfo property
                 ? SqlGeneratorCache.GetRequiredPropertyMetadata(property).ColumnName
                 : expression.Member.Name;
+        }
+
+        private static MemberExpression UnwrapMemberExpression(Expression expression)
+        {
+            if (expression is MemberExpression memberExpression)
+            {
+                return memberExpression;
+            }
+
+            if (expression is UnaryExpression unaryExpression
+                && unaryExpression.NodeType == ExpressionType.Convert)
+            {
+                return UnwrapMemberExpression(unaryExpression.Operand);
+            }
+
+            throw new InvalidCastException($"Unable to resolve member access from expression type.");
         }
     }
 }

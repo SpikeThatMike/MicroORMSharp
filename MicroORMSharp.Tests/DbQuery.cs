@@ -15,6 +15,7 @@ namespace MicroORMSharp.Tests
             var query = new DbQuery<Customers>().Take(1);
 
             Assert.AreEqual(1, query._take, "Incorrect take limit inside of select query");
+            Assert.IsNull(query._offset, "Take should clear any existing offset");
         }
 
         [TestMethod]
@@ -160,6 +161,55 @@ namespace MicroORMSharp.Tests
                 expectedParameters.Count == parameters.Count
                 && expectedParameters.Keys.All(key => parameters.ContainsKey(key) && expectedParameters[key].ToString().Equals(parameters[key].ToString())),
                 "Incorrect order by inside select query"
+            );
+        }
+
+        [TestMethod]
+        public void DbQuery_SetPagination_SetValues()
+        {
+            var query = new DbQuery<Customers>().SetPagination(pageNumber: 2, pageSize: 10);
+
+            Assert.AreEqual(10, query._take, "Incorrect page size");
+            Assert.AreEqual(10, query._offset, "Incorrect offset");
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public void DbQuery_GetSql_Pagination_MySql()
+        {
+            SqlGeneratorCache.Initialise();
+
+            var query = new DbQuery<Customers>()
+                .Select(x => x.Forename)
+                .OrderBy(x => x.Forename)
+                .SetPagination(pageNumber: 2, pageSize: 10);
+
+            string sql = query.GetSqlQuery(DatabaseType.MySql);
+
+            Assert.AreEqual(
+                "SELECT `Customers`.`Forename` AS `Forename` FROM `Customers` ORDER BY `Customers`.`Forename` ASC LIMIT 10 OFFSET 10",
+                sql,
+                "Incorrect paginated query"
+            );
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public void DbQuery_GetSql_Pagination_SqlServer()
+        {
+            SqlGeneratorCache.Initialise();
+
+            var query = new DbQuery<Customers>()
+                .Select(x => x.Forename)
+                .OrderBy(x => x.Forename)
+                .SetPagination(pageNumber: 2, pageSize: 10);
+
+            string sql = query.GetSqlQuery(DatabaseType.SqlServer);
+
+            Assert.AreEqual(
+                "SELECT [Customers].[Forename] AS [Forename] FROM [dbo].[Customers] ORDER BY [Customers].[Forename] ASC OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY",
+                sql,
+                "Incorrect paginated query"
             );
         }
     }
