@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <PackageId>MicroORMSharp</PackageId>
+    <Description>ORM built on Dapper with CRUD operations, query builder, class joins, and optional table operations.</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <PackageId>MicroORMSharp.SqlGenerator</PackageId>
+    <Description>SQL generation and attribute metadata package used by MicroORMSharp for generating SQL queries.</Description>
   </PropertyGroup>
 
 </Project>

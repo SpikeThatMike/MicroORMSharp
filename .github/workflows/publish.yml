@@ -1,0 +1,263 @@
+name: Build, Pack, and Publish
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      package_version: ${{ steps.version.outputs.package_version }}
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: admin
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -padmin"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate package version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $baseVersion = $props.Project.PropertyGroup.PackageVersionBase
+
+          if (-not $baseVersion) {
+            throw "PackageVersionBase was not found in Directory.Build.props."
+          }
+
+          if ($baseVersion -notmatch '^\d+\.\d+$') {
+            throw "PackageVersionBase must use major.minor format, for example 1.0."
+          }
+
+          $tagPattern = "v$baseVersion.*"
+          $latestTag = git tag --list $tagPattern --sort=-version:refname | Select-Object -First 1
+
+          if ($latestTag) {
+            $versionText = $latestTag.TrimStart('v')
+            $version = [Version]$versionText
+
+            if ($version.Major -ne [int]($baseVersion.Split('.')[0]) -or $version.Minor -ne [int]($baseVersion.Split('.')[1])) {
+              throw "Latest tag $latestTag does not match PackageVersionBase $baseVersion."
+            }
+
+            $nextPatch = $version.Build + 1
+          }
+          else {
+            $nextPatch = 0
+          }
+
+          $packageVersion = "$baseVersion.$nextPatch"
+          "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+
+          $lastTag = git describe --tags --abbrev=0 --match "v*" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            $lastTag = $null
+          }
+
+          if ($lastTag) {
+            $commits = git log "$lastTag..HEAD" --pretty=format:"- %s (%h)"
+            $intro = "Changes since $lastTag."
+          }
+          else {
+            $commits = git log --pretty=format:"- %s (%h)"
+            $intro = "Initial release notes generated from repository history."
+          }
+
+          if (-not $commits) {
+            $commits = "- No changes recorded."
+          }
+
+          $content = @(
+            "# Release ${{ steps.version.outputs.package_version }}"
+            ""
+            $intro
+            ""
+            $commits
+          )
+
+          $path = Join-Path $PWD "artifacts/changelog.md"
+          Set-Content -Path $path -Value $content
+          "changelog_path=$path" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: |
+            **/packages.lock.json
+            **/*.csproj
+            Directory.Build.props
+
+      - name: Wait for MySQL
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if (echo > /dev/tcp/localhost/3306) >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "MySQL did not become ready in time."
+          exit 1
+
+      - name: Restore
+        run: dotnet restore MicroORMSharp.sln
+
+      - name: Build
+        run: dotnet build MicroORMSharp.sln --configuration Release --no-restore /p:Version=${{ steps.version.outputs.package_version }}
+
+      - name: Test SQL generator project
+        run: dotnet test MicroORMSharp.SQLGenerator.Tests/MicroORMSharp.SqlGenerator.Tests.csproj --configuration Release --no-build --settings ci.runsettings
+
+      - name: Test MicroORMSharp project
+        run: dotnet test MicroORMSharp.Tests/MicroORMSharp.Tests.csproj --configuration Release --no-build --settings ci.runsettings
+
+      - name: Pack
+        run: dotnet pack MicroORMSharp.sln --configuration Release --no-build --output ./artifacts/packages /p:PackageVersion=${{ steps.version.outputs.package_version }}
+
+      - name: Verify signed NuGet packages
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+          $packages = Get-ChildItem -Path artifacts/packages |
+            Where-Object { $_.Extension -in '.nupkg', '.snupkg' -and $_.Name -notlike "*.symbols.nupkg" }
+
+          if (-not $packages) {
+            throw "No NuGet packages were produced."
+          }
+
+          foreach ($package in $packages) {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($package.FullName)
+            try {
+              $isSigned = $archive.Entries.FullName -contains '.signature.p7s'
+            }
+            finally {
+              $archive.Dispose()
+            }
+
+            if (-not $isSigned) {
+              Write-Host "Skipping signature verification for unsigned package $($package.Name)."
+              continue
+            }
+
+            dotnet nuget verify $package.FullName --all
+          }
+
+      - name: Upload packages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/packages
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-changelog
+          path: ${{ steps.changelog.outputs.changelog_path }}
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download packages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/packages
+
+      - name: Download changelog artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-changelog
+          path: artifacts
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: |
+            **/packages.lock.json
+            **/*.csproj
+            Directory.Build.props
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push packages to NuGet
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem -Path artifacts/packages -Filter *.nupkg |
+            Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+
+          if (-not $packages) {
+            throw "No NuGet packages were produced."
+          }
+
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName `
+              --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" `
+              --source https://api.nuget.org/v3/index.json `
+              --skip-duplicate
+          }
+
+      - name: Publish changelog to workflow summary
+        shell: pwsh
+        run: Get-Content artifacts/changelog.md >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Create release tag
+        shell: bash
+        run: |
+          tag="v${{ needs.validate.outputs.package_version }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"

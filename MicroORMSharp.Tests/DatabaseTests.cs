@@ -329,7 +329,7 @@ namespace MicroORMSharp.Tests
                 Assert.AreEqual(1, result2nd.Count(), "Incorrect number of rows for 2nd page");
 
                 Assert.AreEqual(1, result1st.First().Id, "Incorrect row for 1st page");
-                Assert.AreEqual(2, result1st.First().Id, "Incorrect row for 2nd page");
+                Assert.AreEqual(2, result2nd.First().Id, "Incorrect row for 2nd page");
             }
             finally
             {
