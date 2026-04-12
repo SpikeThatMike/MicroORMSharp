@@ -17,20 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       package_version: ${{ steps.version.outputs.package_version }}
-    services:
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_ROOT_PASSWORD: admin
-          MYSQL_DATABASE: test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -padmin"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-          --local-infile=1
 
     steps:
       - name: Checkout repository
@@ -119,17 +105,40 @@ jobs:
             **/*.csproj
             Directory.Build.props
 
-      - name: Wait for MySQL
+      - name: Start MySQL container
+        shell: bash
+        run: |
+          docker run -d \
+            --name microormsharp-mysql \
+            -e MYSQL_ROOT_PASSWORD=admin \
+            -e MYSQL_DATABASE=test \
+            -p 3306:3306 \
+            -v "$PWD/.github/mysql/local-infile.cnf:/etc/mysql/conf.d/local-infile.cnf:ro" \
+            mysql:8.4
+
+      - name: Install MySQL client
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Wait for configured MySQL
         shell: bash
         run: |
           for i in {1..30}; do
-            if (echo > /dev/tcp/localhost/3306) >/dev/null 2>&1; then
+            if mysqladmin ping -h localhost -uroot -padmin --silent; then
               exit 0
             fi
             sleep 2
           done
-          echo "MySQL did not become ready in time."
+          echo "Configured MySQL did not become ready in time."
+          docker logs microormsharp-mysql || true
           exit 1
+
+      - name: Verify MySQL local infile
+        shell: bash
+        run: |
+          mysql -h localhost -uroot -padmin -e "SHOW GLOBAL VARIABLES LIKE 'local_infile';"
 
       - name: Restore
         run: dotnet restore MicroORMSharp.sln
@@ -186,6 +195,16 @@ jobs:
         with:
           name: release-changelog
           path: ${{ steps.changelog.outputs.changelog_path }}
+
+      - name: Print MySQL logs on failure
+        if: failure()
+        shell: bash
+        run: docker logs microormsharp-mysql || true
+
+      - name: Stop MySQL container
+        if: always()
+        shell: bash
+        run: docker rm -f microormsharp-mysql || true
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
