@@ -274,14 +274,45 @@ jobs:
         run: Get-Content artifacts/changelog.md >> $env:GITHUB_STEP_SUMMARY
 
       - name: Create release tag
+        id: tag
         shell: bash
         run: |
           tag="v${{ needs.validate.outputs.package_version }}"
           if git rev-parse "$tag" >/dev/null 2>&1; then
             echo "Tag $tag already exists."
+            echo "tag_name=$tag" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$tag" -m "Release $tag"
           git push origin "$tag"
+          echo "tag_name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.tag_name }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "Release $tag" --notes-file artifacts/changelog.md
+          else
+            gh release create "$tag" --title "Release $tag" --notes-file artifacts/changelog.md
+          fi
+
+      - name: Upload release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.tag_name }}"
+          shopt -s nullglob
+          files=(artifacts/packages/*.nupkg artifacts/packages/*.snupkg)
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No release assets found."
+            exit 0
+          fi
+
+          gh release upload "$tag" "${files[@]}" --clobber
