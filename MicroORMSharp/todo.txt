@@ -1,9 +1,0 @@
-﻿Retry policy methods
-- For transient exceptions in database operations
-- These methods can be used to implement retry logic in case of transient failures, such as network issues or temporary unavailability of the database.
-- Defaults to 0 retries but can be set per DbQuery ".SetRetryPolicy()" (overrides global if specified) or globally for all queries Database.UseRetryPolicy(3);
-
-Pagination methods
-- For paginating query results
-- Add onto a DbQuery to specify pagination parameters, such as page number and page size .SetPagination(pageNumber: 2, pageSize: 10);
-- This will use OFFSET AND LIMIT
