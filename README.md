@@ -192,7 +192,37 @@ public class Customer : IMicroORMSharp
 - `[DbTable("MyDatabase", "dbo", "Customers")]` map to the table
 - `[DbColumn("Postalcode")]` map a property when the C# property doesn't match the table schema
 - `[DbIdentity]` marks the identity/primary key column used by insert/update/delete behavior
-- `[DbIgnore]` excludes a property from persistence
+- `[DbIgnore]` the property will be ignored completely. This is good for combining properties together or for properties that are not mapped to the database at all, such as calculated properties
+- `[DbMaxLength(20)]` limits a string column length and validates values before insert/update
+- `[DbPrecision(10, 3)]` configures decimal precision and scale for create table generation
+- `[DbDefault("guest")]`, `[DbDefault(12.345)]`, `[DbDefault(7)]`, `[DbDefault(true)]` define column defaults used in table creation and when null values are inserted or updated
+
+If you use the table extension methods to create tables, these attributes are used to generate the correct SQL schema.
+When using `[DbMaxLength(20)]` on a string property, if you try to insert or update a value longer than 20 characters, an exception is thrown to prevent data truncation before it hits the database.
+
+Attributes used for table creation:
+```csharp
+[DbTable("ConfiguredEntities")]
+public class AttributeExample : IMicroORMSharp
+{
+    [DbIdentity]
+    public long Id { get; set; }
+
+    [DbMaxLength(20)]
+    [DbDefault("guest")]
+    public string? Name { get; set; }
+
+    [DbPrecision(10, 3)]
+    [DbDefault(12.345)]
+    public decimal? Amount { get; set; }
+
+    [DbDefault(7)]
+    public int? Quantity { get; set; }
+
+    [DbDefault(true)]
+    public bool? IsEnabled { get; set; }
+}
+```
 
 ## Querying data
 ### Basic query examples
