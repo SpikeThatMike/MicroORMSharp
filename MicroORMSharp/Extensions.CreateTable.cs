@@ -69,6 +69,7 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
+        //List methods
         public static void CreateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,

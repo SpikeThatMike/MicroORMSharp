@@ -28,6 +28,26 @@ namespace MicroORMSharp.Tests
             return TestDatabaseFixture.CreateCustomerBatch();
         }
 
+        private static void EnsureTableCreated<T>(T table) where T : IMicroORMSharp
+        {
+            TestDatabaseFixture.EnsureTableCreated(table);
+        }
+
+        private static void EnsureTableCreated<T>(List<T> customers) where T : IMicroORMSharp
+        {
+            TestDatabaseFixture.EnsureTableCreated(customers);
+        }
+
+        private static void AssertTableDropped<T>(T customers) where T : IMicroORMSharp
+        {
+            TestDatabaseFixture.AssertTableDropped(customers);
+        }
+
+        private static void AssertTableDropped<T>(List<T> customers) where T : IMicroORMSharp
+        {
+            TestDatabaseFixture.AssertTableDropped(customers);
+        }
+
         private static Task EnsureTableCreatedAsync<T>(T table) where T : IMicroORMSharp
         {
             return TestDatabaseFixture.EnsureTableCreatedAsync(table);

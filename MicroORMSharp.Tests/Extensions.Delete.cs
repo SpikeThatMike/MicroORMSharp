@@ -7,7 +7,32 @@ namespace MicroORMSharp.Tests
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task DeleteRow_MySql()
+        public void DeleteRow_MySql()
+        {
+            UseMySqlConnection();
+
+            var customers = CreateCustomer();
+            EnsureTableCreated(customers);
+
+            try
+            {
+                customers = customers.Insert();
+                Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
+
+                customers.Delete();
+
+                var query = Database.Query<Customers>().Execute();
+                Assert.AreEqual(0, query.Count(), "Failed to delete row");
+            }
+            finally
+            {
+                AssertTableDropped(customers);
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task DeleteRowAsync_MySql()
         {
             UseMySqlConnection();
 

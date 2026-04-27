@@ -53,6 +53,7 @@ namespace MicroORMSharp
             )), dbConnection, dbTransaction);
         }
 
+        //List methods
         public static bool TableExists<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
@@ -64,7 +65,13 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return TableExists(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return TableExists(
+                entity,
+                cancellationToken,
+                commandTimeout,
+                dbConnection,
+                dbTransaction
+            );
         }
 
         public static async Task<bool> TableExistsAsync<T>(
@@ -78,7 +85,13 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return await TableExistsAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return await TableExistsAsync(
+                entity,
+                cancellationToken,
+                commandTimeout,
+                dbConnection,
+                dbTransaction
+            );
         }
     }
 }

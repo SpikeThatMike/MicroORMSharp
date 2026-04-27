@@ -70,6 +70,7 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
+        //List methods
         public static void TruncateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
@@ -81,7 +82,13 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            TruncateTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            TruncateTable(
+                entity,
+                cancellationToken,
+                commandTimeout,
+                dbConnection,
+                dbTransaction
+             );
         }
  
         public static async Task TruncateTableAsync<T>(
@@ -95,7 +102,13 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            await TruncateTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            await TruncateTableAsync(
+                entity,
+                cancellationToken,
+                commandTimeout,
+                dbConnection,
+                dbTransaction
+             );
         }
       }
 }

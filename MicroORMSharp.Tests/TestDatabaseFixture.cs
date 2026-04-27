@@ -55,6 +55,43 @@ namespace MicroORMSharp.Tests
             };
         }
 
+        public static void EnsureTableCreated<T>(T table) where T : IMicroORMSharp
+        {
+            var exists = table.TableExists();
+            if (!exists)
+            {
+                table.CreateTable();
+                var isCreated = table.TableExists();
+                Assert.IsTrue(isCreated, "Failed to create table");
+            }
+        }
+
+        public static void EnsureTableCreated<T>(List<T> table) where T : IMicroORMSharp
+        {
+            var exists = table.TableExists();
+            if (!exists)
+            {
+                table.CreateTable();
+                var isCreated = table.TableExists();
+                Assert.IsTrue(isCreated, "Failed to create table");
+            }
+        }
+
+        public static void AssertTableDropped<T>(T table) where T : IMicroORMSharp
+        {
+            table.DropTable();
+            var isDeleted = table.TableExists();
+            Assert.IsFalse(isDeleted, "Failed to delete table");
+        }
+
+        public static void AssertTableDropped<T>(List<T> table) where T : IMicroORMSharp
+        {
+            table.DropTable();
+            var isDeleted = table.TableExists();
+            Assert.IsFalse(isDeleted, "Failed to delete table");
+        }
+
+
         public static async Task EnsureTableCreatedAsync<T>(T table) where T : IMicroORMSharp
         {
             var exists = await table.TableExistsAsync();
@@ -90,6 +127,5 @@ namespace MicroORMSharp.Tests
             var isDeleted = await table.TableExistsAsync();
             Assert.IsFalse(isDeleted, "Failed to delete table");
         }
-
     }
 }

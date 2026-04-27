@@ -26,7 +26,7 @@ namespace MicroORMSharp
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
-            var sqlQuery = sqlGenerator.InsertRow(entity);
+            var sqlQuery = sqlGenerator.DeleteRow(entity);
 
             WithConnection(db =>
             {
@@ -62,7 +62,7 @@ namespace MicroORMSharp
                     sqlQuery.ToString(),
                     parameters: sqlQuery.Parameters,
                     cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                    commandTimeout: commandTimeout ??= Database._defaultCommandTimeout,
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
                     transaction: dbTransaction
                 ));
             }, dbConnection, dbTransaction);
