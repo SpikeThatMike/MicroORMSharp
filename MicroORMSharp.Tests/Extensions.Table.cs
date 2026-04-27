@@ -6,7 +6,31 @@ namespace MicroORMSharp.Tests
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task CreateAndDeleteTable_MySql()
+        public void CreateAndDeleteTable_MySql()
+        {
+            UseMySqlConnection();
+
+            var customers = new Customers();
+
+            if (customers.TableExists())
+                AssertTableDropped(customers);
+
+            try
+            {
+                customers.CreateTable();
+                var isCreated = customers.TableExists();
+                Assert.IsTrue(isCreated, "Failed to create table");
+            }
+            finally
+            {
+                if (customers.TableExists())
+                    AssertTableDropped(customers);
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task CreateAndDeleteTableAsync_MySql()
         {
             UseMySqlConnection();
 
@@ -30,7 +54,32 @@ namespace MicroORMSharp.Tests
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task TruncateTable_MySql()
+        public void TruncateTable_MySql()
+        {
+            UseMySqlConnection();
+
+            var customers = CreateCustomer();
+            EnsureTableCreated(customers);
+
+            try
+            {
+                customers = customers.Insert();
+                Assert.IsTrue(customers.Id > 0, "Failed to retrieve data from insert");
+
+                customers.TruncateTable();
+                var anyCustomers = Database.Query<Customers>().Any();
+
+                Assert.IsFalse(anyCustomers, "Failed to truncate data from table");
+            }
+            finally
+            {
+                AssertTableDropped(customers);
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task TruncateTableAsync_MySql()
         {
             UseMySqlConnection();
 
