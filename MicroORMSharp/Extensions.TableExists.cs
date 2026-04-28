@@ -21,7 +21,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            return TableExists(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static bool TableExists<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.TableExists();
 
             return WithConnection(db => db.QueryFirstOrDefault<bool>(new CommandDefinition(
@@ -41,7 +53,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            return await TableExistsAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task<bool> TableExistsAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.TableExists();
 
             return await WithConnectionAsync(db => db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
@@ -62,6 +86,18 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            return TableExists(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static bool TableExists<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
@@ -70,7 +106,8 @@ namespace MicroORMSharp
                 cancellationToken,
                 commandTimeout,
                 dbConnection,
-                dbTransaction
+                dbTransaction,
+                databaseType
             );
         }
 
@@ -82,6 +119,18 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            return await TableExistsAsync(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task<bool> TableExistsAsync<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
@@ -90,7 +139,8 @@ namespace MicroORMSharp
                 cancellationToken,
                 commandTimeout,
                 dbConnection,
-                dbTransaction
+                dbTransaction,
+                databaseType
             );
         }
     }

@@ -20,12 +20,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            Delete(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static void Delete<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.DeleteRow(entity);
 
             WithConnection(db =>
@@ -48,12 +60,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            await DeleteAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task DeleteAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.DeleteRow(entity);
 
             await WithConnectionAsync(async db =>

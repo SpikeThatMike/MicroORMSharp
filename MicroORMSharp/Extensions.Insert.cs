@@ -20,12 +20,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            return Insert(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static T Insert<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
             return WithConnection(db => db.QueryFirst<T>(new CommandDefinition(
@@ -45,12 +57,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            InsertOnly(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static void InsertOnly<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity, false);
 
             WithConnection(db =>
@@ -73,12 +97,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            return await InsertAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task<T> InsertAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
             return await WithConnectionAsync(db => db.QueryFirstAsync<T>(new CommandDefinition(
@@ -98,12 +134,24 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            await InsertOnlyAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task InsertOnlyAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity, false);
 
             await WithConnectionAsync(async db =>

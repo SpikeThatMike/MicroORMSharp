@@ -22,7 +22,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            return ExecuteUpdate(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return Update(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static T Update<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            return ExecuteUpdate(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static T Update<T>(
@@ -34,7 +46,20 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            return ExecuteUpdate(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return Update(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static T Update<T>(
+            this T entity,
+            Expression<Func<T, object>> columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            return ExecuteUpdate(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static void UpdateOnly<T>(
@@ -45,7 +70,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            ExecuteUpdateOnly(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            UpdateOnly(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static void UpdateOnly<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            ExecuteUpdateOnly(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static void UpdateOnly<T>(
@@ -57,7 +94,20 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            ExecuteUpdateOnly(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            UpdateOnly(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static void UpdateOnly<T>(
+            this T entity,
+            Expression<Func<T, object>> columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            ExecuteUpdateOnly(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
         #endregion
 
@@ -70,7 +120,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            return await ExecuteUpdateAsync(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return await UpdateAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task<T> UpdateAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            return await ExecuteUpdateAsync(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static async Task<T> UpdateAsync<T>(
@@ -82,7 +144,20 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            return await ExecuteUpdateAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            return await UpdateAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task<T> UpdateAsync<T>(
+            this T entity,
+            Expression<Func<T, object>> columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            return await ExecuteUpdateAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static async Task UpdateOnlyAsync<T>(
@@ -93,7 +168,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            await ExecuteUpdateOnlyAsync(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            await UpdateOnlyAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task UpdateOnlyAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            await ExecuteUpdateOnlyAsync(entity, columns: null, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
 
         public static async Task UpdateOnlyAsync<T>(
@@ -105,18 +192,32 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            await ExecuteUpdateOnlyAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction);
+            await UpdateOnlyAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task UpdateOnlyAsync<T>(
+            this T entity,
+            Expression<Func<T, object>> columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
+        ) where T : IMicroORMSharp
+        {
+            await ExecuteUpdateOnlyAsync(entity, columns, cancellationToken, commandTimeout, dbConnection, dbTransaction, databaseType);
         }
         #endregion
 
         #region Private execution methods
         private static T ExecuteUpdate<T>(
             T entity,
-            Expression<Func<T, object>>? columns = null,
-            CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            Expression<Func<T, object>>? columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -124,7 +225,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = columns == null
                 ? sqlGenerator.UpdateRow(entity, true)
                 : sqlGenerator.UpdateRow(entity, columns, true);
@@ -143,11 +244,12 @@ namespace MicroORMSharp
 
         private static async Task<T> ExecuteUpdateAsync<T>(
             T entity,
-            Expression<Func<T, object>>? columns = null,
-            CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            Expression<Func<T, object>>? columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -155,7 +257,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = columns == null
                 ? sqlGenerator.UpdateRow(entity, true)
                 : sqlGenerator.UpdateRow(entity, columns, true);
@@ -174,11 +276,12 @@ namespace MicroORMSharp
 
         private static void ExecuteUpdateOnly<T>(
             T entity,
-            Expression<Func<T, object>>? columns = null,
-            CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            Expression<Func<T, object>>? columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -186,7 +289,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = columns == null
                 ? sqlGenerator.UpdateRow(entity, false)
                 : sqlGenerator.UpdateRow(entity, columns, false);
@@ -205,11 +308,12 @@ namespace MicroORMSharp
 
         private static async Task ExecuteUpdateOnlyAsync<T>(
             T entity,
-            Expression<Func<T, object>>? columns = null,
-            CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            Expression<Func<T, object>>? columns,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -217,7 +321,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = columns == null
                 ? sqlGenerator.UpdateRow(entity, false)
                 : sqlGenerator.UpdateRow(entity, columns, false);

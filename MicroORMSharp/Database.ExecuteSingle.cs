@@ -17,7 +17,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType(dbQuery));
             if (sqlGenerator.JoinProperties.Any())
             {
                 //Dont execute this as FirstOrDefault or if it has joins they wont worker properly
@@ -44,7 +44,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(dbQuery));
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(GetDatabaseType(dbQuery));
             if (sqlGenerator.JoinProperties.Any())
             {
                 //Dont execute this as FirstOrDefault or if it has joins they wont worker properly

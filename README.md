@@ -251,6 +251,27 @@ var activeCustomerCount = await Database.Query<Customer>()
     .CountAsync();
 ```
 
+### Using a context
+Use `Database.CreateContext(...)` when you want a scoped connection and database type for several operations without changing the global current connection.
+
+```csharp
+using var db = Database.CreateContext("ReportingMySql");
+
+var customers = await db.Query<Customer>()
+    .Where(x => x.Active)
+    .ExecuteAsync();
+
+var customer = await db.InsertAsync(new Customer
+{
+    Forename = "Jane",
+    Surname = "Doe"
+});
+
+var count = await db.Dapper.QuerySingleAsync<int>(
+    "SELECT COUNT(*) FROM Customers;"
+);
+```
+
 ### Selecting columns
 `Select` allows you to specify which columns to query while still returning the entity type. This is useful when you only need a subset of the columns for read-only operations, and want to avoid querying unnecessary data.
 `SelectTo` allows you to project the result into a different class, which is useful when you want to return a custom shape of data that doesn't match the entity type, such as a DTO or an anonymous type. This can help reduce over-fetching and improve performance by only querying the columns that are needed for the projection.

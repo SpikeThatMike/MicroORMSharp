@@ -21,12 +21,25 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            if (!Database.GetTableExtensionsOption())
+            CreateTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+        }
+
+        internal static void CreateTable<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType,
+            bool allowTableExtensions
+        ) where T : IMicroORMSharp
+        {
+            if (!allowTableExtensions)
             {
                 throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.CreateTable();
 
             WithConnection(db =>
@@ -49,12 +62,25 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
-            if (!Database.GetTableExtensionsOption())
+            await CreateTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+        }
+
+        internal static async Task CreateTableAsync<T>(
+            this T entity,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType,
+            bool allowTableExtensions
+        ) where T : IMicroORMSharp
+        {
+            if (!allowTableExtensions)
             {
                 throw new Exception("Table extensions are disabled. Add allowTableExtensions: true to Database.AddConnectionString");
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.CreateTable();
 
             await WithConnectionAsync(async db =>
@@ -78,6 +104,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            CreateTable(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+        }
+
+        internal static void CreateTable<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType,
+            bool allowTableExtensions
+        ) where T : IMicroORMSharp
+        {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
@@ -86,7 +125,9 @@ namespace MicroORMSharp
                 cancellationToken,
                 commandTimeout,
                 dbConnection,
-                dbTransaction
+                dbTransaction,
+                databaseType,
+                allowTableExtensions
             );
         }
 
@@ -98,6 +139,19 @@ namespace MicroORMSharp
             IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
+            await CreateTableAsync(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+        }
+
+        internal static async Task CreateTableAsync<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken,
+            int? commandTimeout,
+            IDbConnection? dbConnection,
+            IDbTransaction? dbTransaction,
+            DatabaseType databaseType,
+            bool allowTableExtensions
+        ) where T : IMicroORMSharp
+        {
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
@@ -106,7 +160,9 @@ namespace MicroORMSharp
                 cancellationToken,
                 commandTimeout,
                 dbConnection,
-                dbTransaction
+                dbTransaction,
+                databaseType,
+                allowTableExtensions
             );
         }
     }

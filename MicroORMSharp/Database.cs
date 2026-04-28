@@ -56,25 +56,38 @@ namespace MicroORMSharp
             return new DbQuery<T>();
         }
 
+        public static DBContext CreateContext()
+        {
+            return new DBContext(GetCurrentConnectionSetup());
+        }
+
+        public static DBContext CreateContext(string reference)
+        {
+            return new DBContext(GetConnectionSetup(reference));
+        }
+
+        public static DBContext CreateContext(ServerConnections serverConnection)
+        {
+            return new DBContext(serverConnection);
+        }
+
         #region Connections
         public static IDbConnection GetConnection()
         {
-            if (_currentConnection == null)
-            {
-                throw new Exception("No connection string set");
-            }
-
-            return GetConnection(_currentConnection.Reference);
+            return GetConnection(GetCurrentConnectionSetup());
         }
 
         public static IDbConnection GetConnection(string reference)
         {
-            if (!_connections.Any(x => x.Reference == reference))
-            {
-                throw new Exception("No connection string with this reference");
-            }
+            return GetConnection(GetConnectionSetup(reference));
+        }
 
-            var connection = _connections.First(x => x.Reference == reference);
+        public static IDbConnection GetConnection(ServerConnections connection)
+        {
+            if (connection == null)
+            {
+                throw new Exception("No connection setup found");
+            }
 
             return connection.DatabaseType switch
             {
@@ -82,6 +95,26 @@ namespace MicroORMSharp
                 DatabaseType.SqlServer => new SqlConnection(connection.ConnectionString),
                 _ => throw new ArgumentException($"Unsupported database type connection: {connection.DatabaseType}")
             };
+        }
+
+        internal static ServerConnections GetCurrentConnectionSetup()
+        {
+            if (_currentConnection == null)
+            {
+                throw new Exception("No connection string set");
+            }
+
+            return _currentConnection;
+        }
+
+        internal static ServerConnections GetConnectionSetup(string reference)
+        {
+            if (!_connections.Any(x => x.Reference == reference))
+            {
+                throw new Exception("No connection string with this reference");
+            }
+
+            return _connections.First(x => x.Reference == reference);
         }
 
         public static T WithConnection<T>(Func<IDbConnection, T> getData)
@@ -269,6 +302,11 @@ namespace MicroORMSharp
         public static DatabaseType GetDatabaseType()
         {
             return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
+        }
+
+        private static DatabaseType GetDatabaseType<T>(DbQuery<T> dbQuery) where T : IMicroORMSharp
+        {
+            return dbQuery._databaseType ?? GetDatabaseType();
         }
 
         public static bool GetTableExtensionsOption()

@@ -20,6 +20,11 @@ namespace MicroORMSharp
     {
         public static void Insert<T>(this IEnumerable<T> entities, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
+            Insert(entities, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static void Insert<T>(this IEnumerable<T> entities, IDbConnection? dbConnection, IDbTransaction? dbTransaction, DatabaseType databaseType) where T : IMicroORMSharp
+        {
             if (entities == null)
             {
                 throw new ArgumentNullException(nameof(entities));
@@ -30,7 +35,7 @@ namespace MicroORMSharp
                 return;
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             sqlGenerator.ValidateAttributes(entities);
 
             WithConnection(db =>
@@ -65,6 +70,11 @@ namespace MicroORMSharp
 
         public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
+            await InsertAsync(entities, cancellationToken, dbConnection, dbTransaction, Database.GetDatabaseType());
+        }
+
+        internal static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken, IDbConnection? dbConnection, IDbTransaction? dbTransaction, DatabaseType databaseType) where T : IMicroORMSharp
+        {
             if (entities == null)
             {
                 throw new ArgumentNullException(nameof(entities));
@@ -75,7 +85,7 @@ namespace MicroORMSharp
                 return;
             }
 
-            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(Database.GetDatabaseType());
+            SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             sqlGenerator.ValidateAttributes(entities);
 
             await WithConnectionAsync(async db =>

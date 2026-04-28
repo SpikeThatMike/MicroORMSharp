@@ -9,9 +9,16 @@ namespace MicroORMSharp
 {
     public class DapperWrapper
     {
-        private static T UseConnection<T>(Func<IDbConnection, T> action, IDbConnection? connection = null, IDbTransaction? transaction = null)
+        private readonly IDbConnection? _dbConnection;
+
+        public DapperWrapper(IDbConnection? dbConnection = null)
         {
-            var existingConnection = connection ?? transaction?.Connection;
+            _dbConnection = dbConnection;
+        }
+
+        private T UseConnection<T>(Func<IDbConnection, T> action, IDbConnection? connection = null, IDbTransaction? transaction = null)
+        {
+            var existingConnection = connection ?? transaction?.Connection ?? _dbConnection;
             if (existingConnection != null)
             {
                 return action(existingConnection);
@@ -20,9 +27,9 @@ namespace MicroORMSharp
             return Database.WithConnection(action);
         }
 
-        private static Task<T> UseConnectionAsync<T>(Func<IDbConnection, Task<T>> action, IDbConnection? connection = null, IDbTransaction? transaction = null)
+        private Task<T> UseConnectionAsync<T>(Func<IDbConnection, Task<T>> action, IDbConnection? connection = null, IDbTransaction? transaction = null)
         {
-            var existingConnection = connection ?? transaction?.Connection;
+            var existingConnection = connection ?? transaction?.Connection ?? _dbConnection;
             if (existingConnection != null)
             {
                 return action(existingConnection);

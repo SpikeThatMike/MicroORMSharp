@@ -17,43 +17,43 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public IEnumerable<MemberInfo> _selectClause { get; set; }
+        public IEnumerable<MemberInfo> _selectClause { get; internal set; }
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Expression<Func<T, bool>> _whereClause { get; set; }
+        public Expression<Func<T, bool>> _whereClause { get; internal set; }
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public int? _take { get; set; }
+        public int? _take { get; internal set; }
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public int? _offset { get; set; }
+        public int? _offset { get; internal set; }
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Dictionary<Expression<Func<T, object>>, bool> _orderBy { get; set; } = new Dictionary<Expression<Func<T, object>>, bool>();
+        public Dictionary<Expression<Func<T, object>>, bool> _orderBy { get; internal set; } = new Dictionary<Expression<Func<T, object>>, bool>();
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public CancellationToken? _cancellationToken { get; set; } = null;
+        public CancellationToken? _cancellationToken { get; internal set; } = null;
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public int? _commandTimeout { get; set; } = null;
+        public int? _commandTimeout { get; internal set; } = null;
 
         [Browsable(false)]
         [Bindable(false)]
@@ -61,17 +61,21 @@ namespace MicroORMSharp.SqlGenerator
         [EditorBrowsable(EditorBrowsableState.Never)]
         public IDbConnection? _dbConnection { get; set; } = null;
 
-        [Browsable(false)]
-        [Bindable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public IDbTransaction? _dbTransaction { get; set; } = null;
+        public IDbTransaction? _dbTransaction { get; internal set; } = null;
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool _hasSelectTo { get; set; } = false;
+        public DatabaseType? _databaseType { get; set; } = null;
+
+        [Browsable(false)]
+        [Bindable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool? _allowTableExtensions { get; set; } = null;
+
+        public bool _hasSelectTo { get; internal set; } = false;
     }
 
     public class DbProjectionQuery<TSource, TResult> where TSource : IMicroORMSharp
@@ -80,13 +84,13 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public DbQuery<TSource> Query { get; set; } = null!;
+        public DbQuery<TSource> Query { get; internal set; } = null!;
 
         [Browsable(false)]
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Expression<Func<TSource, TResult>> Selector { get; set; } = null!;
+        public Expression<Func<TSource, TResult>> Selector { get; internal set; } = null!;
     }
 
     public static class DbQueryExtensions
