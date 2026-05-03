@@ -16,22 +16,20 @@ namespace MicroORMSharp
         public static void CreateTable<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            CreateTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            CreateTable(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void CreateTable<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -57,22 +55,20 @@ namespace MicroORMSharp
         public static async Task CreateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await CreateTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await CreateTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task CreateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -99,22 +95,20 @@ namespace MicroORMSharp
         public static void CreateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            CreateTable(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            CreateTable(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void CreateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -124,32 +118,30 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
             );
         }
 
         public static async Task CreateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await CreateTableAsync(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await CreateTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task CreateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -159,10 +151,10 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
             );
         }
     }

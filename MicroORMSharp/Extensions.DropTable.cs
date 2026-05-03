@@ -16,22 +16,20 @@ namespace MicroORMSharp
         public static void DropTable<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            DropTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            DropTable(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void DropTable<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -57,22 +55,20 @@ namespace MicroORMSharp
         public static async Task DropTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DropTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await DropTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task DropTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -100,22 +96,20 @@ namespace MicroORMSharp
         public static void DropTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            DropTable(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            DropTable(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void DropTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -125,32 +119,30 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
             );
         }
 
         public static async Task DropTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DropTableAsync(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await DropTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task DropTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -160,10 +152,10 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
             );
         }
     }

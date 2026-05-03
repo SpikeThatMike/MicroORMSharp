@@ -18,12 +18,19 @@ namespace MicroORMSharp
 {
     public static partial class Extensions
     {
-        public static void Insert<T>(this IEnumerable<T> entities, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
+        public static void Insert<T>(
+            this IEnumerable<T> entities
+        ) where T : IMicroORMSharp
         {
-            Insert(entities, dbConnection, dbTransaction, Database.GetDatabaseType());
+            Insert(entities, Database.GetDatabaseType());
         }
 
-        internal static void Insert<T>(this IEnumerable<T> entities, IDbConnection? dbConnection, IDbTransaction? dbTransaction, DatabaseType databaseType) where T : IMicroORMSharp
+        internal static void Insert<T>(
+            this IEnumerable<T> entities,
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             if (entities == null)
             {
@@ -68,12 +75,21 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken = null, IDbConnection? dbConnection = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
+        public static async Task InsertAsync<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken = null
+        ) where T : IMicroORMSharp
         {
-            await InsertAsync(entities, cancellationToken, dbConnection, dbTransaction, Database.GetDatabaseType());
+            await InsertAsync(entities, cancellationToken, Database.GetDatabaseType());
         }
 
-        internal static async Task InsertAsync<T>(this IEnumerable<T> entities, CancellationToken? cancellationToken, IDbConnection? dbConnection, IDbTransaction? dbTransaction, DatabaseType databaseType) where T : IMicroORMSharp
+        internal static async Task InsertAsync<T>(
+            this IEnumerable<T> entities,
+            CancellationToken? cancellationToken,
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
+        ) where T : IMicroORMSharp
         {
             if (entities == null)
             {

@@ -15,21 +15,19 @@ namespace MicroORMSharp
         public static void Delete<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            Delete(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            Delete(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static void Delete<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -55,21 +53,19 @@ namespace MicroORMSharp
         public static async Task DeleteAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DeleteAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            await DeleteAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static async Task DeleteAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)

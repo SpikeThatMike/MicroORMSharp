@@ -15,21 +15,19 @@ namespace MicroORMSharp
         public static T Insert<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            return Insert(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            return Insert(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static T Insert<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -52,21 +50,19 @@ namespace MicroORMSharp
         public static void InsertOnly<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            InsertOnly(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            InsertOnly(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static void InsertOnly<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -92,21 +88,19 @@ namespace MicroORMSharp
         public static async Task<T> InsertAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            return await InsertAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            return await InsertAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static async Task<T> InsertAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)
@@ -129,21 +123,19 @@ namespace MicroORMSharp
         public static async Task InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await InsertOnlyAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType());
+            await InsertOnlyAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static async Task InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
-            DatabaseType databaseType
+            DatabaseType databaseType,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (entity == null)

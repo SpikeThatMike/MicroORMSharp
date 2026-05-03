@@ -35,8 +35,8 @@ namespace MicroORMSharp
             Dapper = new DapperWrapper(_connection);
         }
 
-        private IDbConnection _connection { get; }
-        private DatabaseType _databaseType { get; }
+        internal IDbConnection _connection { get; }
+        internal DatabaseType _databaseType { get; }
 
         private bool _allowTableExtensions { get; }
         public DapperWrapper Dapper { get; }
@@ -180,170 +180,170 @@ namespace MicroORMSharp
         #region Insert Methods
         public T Insert<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return entity.Insert(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return entity.Insert(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public void InsertOnly<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.InsertOnly(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            entity.InsertOnly(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task<T> InsertAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return await entity.InsertAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return await entity.InsertAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task InsertOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.InsertOnlyAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            await entity.InsertOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
         #endregion
 
         #region Bulk Insert Methods
         public void Insert<T>(IEnumerable<T> entities, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entities.Insert(_connection, dbTransaction, _databaseType);
+            entities.Insert(_databaseType, _connection, dbTransaction);
         }
 
         public async Task InsertAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entities.InsertAsync(cancellationToken, _connection, dbTransaction, _databaseType);
+            await entities.InsertAsync(cancellationToken, _databaseType, _connection, dbTransaction);
         }
         #endregion
 
         #region Update Methods
         public T Update<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return entity.Update(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return entity.Update(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public T Update<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return entity.Update(columns, cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return entity.Update(columns, cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public void UpdateOnly<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.UpdateOnly(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            entity.UpdateOnly(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public void UpdateOnly<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.UpdateOnly(columns, cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            entity.UpdateOnly(columns, cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task<T> UpdateAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return await entity.UpdateAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return await entity.UpdateAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task<T> UpdateAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return await entity.UpdateAsync(columns, cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return await entity.UpdateAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task UpdateOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.UpdateOnlyAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            await entity.UpdateOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task UpdateOnlyAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.UpdateOnlyAsync(columns, cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            await entity.UpdateOnlyAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
         #endregion
 
         #region Delete Methods
         public void Delete<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.Delete(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            entity.Delete(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task DeleteAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.DeleteAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            await entity.DeleteAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
         #endregion
 
         #region Tale Methods
         public bool TableExists<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return entity.TableExists(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return entity.TableExists(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public async Task<bool> TableExistsAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return await entity.TableExistsAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return await entity.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public bool TableExists<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return entities.TableExists(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return entities.TableExists(cancellationToken, commandTimeout, _databaseType,_connection, dbTransaction);
         }
 
         public async Task<bool> TableExistsAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            return await entities.TableExistsAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType);
+            return await entities.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection, dbTransaction);
         }
 
         public void CreateTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.CreateTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entity.CreateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task CreateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.CreateTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entity.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public void CreateTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entities.CreateTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entities.CreateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task CreateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entities.CreateTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entities.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public void DropTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.DropTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entity.DropTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task DropTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.DropTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entity.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public void DropTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entities.DropTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entities.DropTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task DropTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entities.DropTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entities.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public void TruncateTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entity.TruncateTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entity.TruncateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task TruncateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entity.TruncateTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entity.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public void TruncateTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            entities.TruncateTable(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            entities.TruncateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
 
         public async Task TruncateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null, IDbTransaction? dbTransaction = null) where T : IMicroORMSharp
         {
-            await entities.TruncateTableAsync(cancellationToken, commandTimeout, _connection, dbTransaction, _databaseType, _allowTableExtensions);
+            await entities.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection, dbTransaction);
         }
         #endregion
 

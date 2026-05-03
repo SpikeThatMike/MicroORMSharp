@@ -59,7 +59,7 @@ namespace MicroORMSharp.SqlGenerator
         [Bindable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public IDbConnection? _dbConnection { get; set; } = null;
+        public IDbConnection? _dbConnection { get; internal set; } = null;
 
         public IDbTransaction? _dbTransaction { get; internal set; } = null;
 
@@ -198,18 +198,6 @@ namespace MicroORMSharp.SqlGenerator
         public static DbQuery<T> SetTimeout<T>(this DbQuery<T> dbQuery, int commandTimeout) where T : IMicroORMSharp
         {
             dbQuery._commandTimeout = commandTimeout;
-            return dbQuery;
-        }
-
-        public static DbQuery<T> SetConnection<T>(this DbQuery<T> dbQuery, IDbConnection dbConnection) where T : IMicroORMSharp
-        {
-            dbQuery._dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
-            return dbQuery;
-        }
-
-        public static DbQuery<T> SetTransaction<T>(this DbQuery<T> dbQuery, IDbTransaction dbTransaction) where T : IMicroORMSharp
-        {
-            dbQuery._dbTransaction = dbTransaction ?? throw new ArgumentNullException(nameof(dbTransaction));
             return dbQuery;
         }
 

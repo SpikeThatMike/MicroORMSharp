@@ -17,22 +17,20 @@ namespace MicroORMSharp
         public static void TruncateTable<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            TruncateTable(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            TruncateTable(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void TruncateTable<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -58,22 +56,20 @@ namespace MicroORMSharp
         public static async Task TruncateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await TruncateTableAsync(entity, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await TruncateTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task TruncateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             if (!allowTableExtensions)
@@ -100,22 +96,20 @@ namespace MicroORMSharp
         public static void TruncateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            TruncateTable(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            TruncateTable(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static void TruncateTable<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -125,32 +119,30 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
              );
         }
  
         public static async Task TruncateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await TruncateTableAsync(entities, cancellationToken, commandTimeout, dbConnection, dbTransaction, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            await TruncateTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
         internal static async Task TruncateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
-            IDbConnection? dbConnection,
-            IDbTransaction? dbTransaction,
             DatabaseType databaseType,
-            bool allowTableExtensions
+            bool allowTableExtensions,
+            IDbConnection? dbConnection = null,
+            IDbTransaction? dbTransaction = null
         ) where T : IMicroORMSharp
         {
             T entity = entities.FirstOrDefault();
@@ -160,10 +152,10 @@ namespace MicroORMSharp
                 entity,
                 cancellationToken,
                 commandTimeout,
-                dbConnection,
-                dbTransaction,
                 databaseType,
-                allowTableExtensions
+                allowTableExtensions,
+                dbConnection,
+                dbTransaction
              );
         }
       }
