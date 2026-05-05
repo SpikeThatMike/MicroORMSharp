@@ -8,7 +8,7 @@ namespace MicroORMSharp.Tests
 {
     internal static class TestDatabaseFixture
     {
-        private const string MySqlReference = "MySql";
+        internal const string MySqlReference = "MySql";
         private const string MySqlConnectionString = "Server=localhost;Database=test;User ID=root;Password=admin;Port=3306;AllowLoadLocalInfile=true";
 
         public static void EnsureMySqlConnection()

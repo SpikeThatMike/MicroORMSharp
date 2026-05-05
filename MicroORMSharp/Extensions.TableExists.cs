@@ -108,9 +108,7 @@ namespace MicroORMSharp
         public static async Task<bool> TableExistsAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
-            int? commandTimeout = null,
-            IDbConnection? dbConnection = null,
-            IDbTransaction? dbTransaction = null
+            int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
             return await TableExistsAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType());

@@ -222,82 +222,134 @@ namespace MicroORMSharp.Tests
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task DbQueryMethods_UseExplicitConnection_MySql()
+        public async Task DbQueryMethods_UseContextConnection_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
-
-            using var connection = Database.GetConnection();
-            connection.Open();
 
             try
             {
-                customer = await customer.InsertAsync(dbConnection: connection);
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
 
-                var query = Database.Query<Customers>()
-                    .Where(x => x.Id == customer.Id)
-                    .SetConnection(connection);
+                customer = await context.InsertAsync(customer);
+
+                var query = context.Query<Customers>()
+                    .Where(x => x.Id == customer.Id);
 
                 var result = await query.ExecuteSingleAsync();
 
                 Assert.IsNotNull(result, "Row not found");
                 Assert.AreEqual(customer.Id, result.Id, "Incorrect row returned");
-                Assert.IsTrue(await query.AnyAsync(), "AnyAsync doesnt use connection");
-                Assert.AreEqual(1, await query.CountAsync(), "CountAsync doesnt use connection");
+                Assert.IsTrue(await query.AnyAsync(), "AnyAsync doesnt use context connection");
+                Assert.AreEqual(1, await query.CountAsync(), "CountAsync doesnt use context connection");
             }
             finally
             {
-                connection.Close();
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task DbQueryMethods_ReuseTransactionConnection_MySql()
+        public async Task CreateContext_UsesNamedConnection_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
-
-            using var connection = Database.GetConnection();
-            connection.Open();
-            using var transaction = connection.BeginTransaction();
 
             try
             {
-                customer = await customer.InsertAsync(dbTransaction: transaction);
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
 
-                var transactionQuery = Database.Query<Customers>()
+                customer = await context.InsertAsync(customer);
+
+                var result = await context.Query<Customers>()
                     .Where(x => x.Id == customer.Id)
-                    .SetTransaction(transaction);
+                    .ExecuteSingleAsync();
 
-                var transactionResult = await transactionQuery.ExecuteSingleAsync();
+                var count = await context.Dapper.QuerySingleAsync<int>(
+                    "SELECT COUNT(*) FROM Customers WHERE Id = @Id;",
+                    new { customer.Id }
+                );
 
-                Assert.IsNotNull(transactionResult, "Row not found");
-                Assert.AreEqual(customer.Id, transactionResult.Id, "Incorrect row returned");
-                Assert.IsTrue(await transactionQuery.AnyAsync(), "AnyAsync doesnt use transaction");
-                Assert.AreEqual(1, await transactionQuery.CountAsync(), "CountAsync doesnt use transaction");
-
-                var outsideTransaction = await Database.Query<Customers>()
-                    .Where(x => x.Id == customer.Id)
-                    .AnyAsync();
-
-                var outsideTransactionQuery = Database.Query<Customers>()
-                    .Where(x => x.Id == customer.Id);
-
-                Assert.IsFalse(outsideTransaction, "A query without SetTransaction should not see the uncommitted row");
-                Assert.IsFalse(await outsideTransactionQuery.AnyAsync(), "AnyAsync uses transaction");
-                Assert.AreEqual(0, await outsideTransactionQuery.CountAsync(), "CountAsync uses transaction");
-
-                transaction.Rollback();
+                Assert.IsNotNull(result, "Context query did not return the inserted customer");
+                Assert.AreEqual(customer.Id, result.Id, "Context query returned the wrong customer");
+                Assert.AreEqual(1, count, "Context Dapper wrapper should reuse the context connection");
             }
             finally
             {
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task DbQueryMethods_UseInternalTransaction_MySql()
+        {
+            TestDatabaseFixture.UseMySqlConnection();
+
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
+            var customer = TestDatabaseFixture.CreateCustomer();
+
+            try
+            {
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
+
+                var result = await context.WithTransactionAsync(async transaction =>
+                {
+                    customer = await customer.InsertAsync(null, null, context.DatabaseType, context._connection, transaction);
+
+                    var transactionQuery = context.Query<Customers>()
+                        .Where(x => x.Id == customer.Id);
+                    transactionQuery._dbTransaction = transaction;
+
+                    var transactionResult = await transactionQuery.ExecuteSingleAsync();
+
+                    Assert.IsNotNull(transactionResult, "Row not found");
+                    Assert.AreEqual(customer.Id, transactionResult.Id, "Incorrect row returned");
+                    Assert.IsTrue(await transactionQuery.AnyAsync(), "AnyAsync doesnt use transaction");
+                    Assert.AreEqual(1, await transactionQuery.CountAsync(), "CountAsync doesnt use transaction");
+
+                    var outsideTransaction = await Database.Query<Customers>()
+                        .Where(x => x.Id == customer.Id)
+                        .AnyAsync();
+
+                    var outsideTransactionQuery = Database.Query<Customers>()
+                        .Where(x => x.Id == customer.Id);
+
+                    Assert.IsFalse(outsideTransaction, "A query without the context transaction should not see the uncommitted row");
+                    Assert.IsFalse(await outsideTransactionQuery.AnyAsync(), "AnyAsync uses transaction");
+                    Assert.AreEqual(0, await outsideTransactionQuery.CountAsync(), "CountAsync uses transaction");
+
+                    throw new InvalidOperationException("Force rollback");
+                });
+
+                Assert.IsFalse(result, "Transaction should have rolled back");
+            }
+            finally
+            {
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 

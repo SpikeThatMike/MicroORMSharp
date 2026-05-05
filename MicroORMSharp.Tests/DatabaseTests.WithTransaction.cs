@@ -14,19 +14,24 @@ namespace MicroORMSharp.Tests
         public async Task WithTransaction_Commited_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
             try
             {
-                var customerCountBefore = await Database.Query<Customers>()
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
+
+                var customerCountBefore = await context.Query<Customers>()
                     .CountAsync();
 
-                var result = Database.WithTransaction(transaction =>
+                var result = context.WithTransaction(transaction =>
                 {
-                    customer.Insert(dbTransaction: transaction);
+                    customer.Insert(null, null, context.DatabaseType, context._connection, transaction);
                 });
 
-                var customerCountAfter = await Database.Query<Customers>()
+                var customerCountAfter = await context.Query<Customers>()
                     .CountAsync();
 
                 Assert.AreEqual(customerCountBefore + 1, customerCountAfter, "Customer wasnt inserted");
@@ -34,7 +39,10 @@ namespace MicroORMSharp.Tests
             }
             finally
             {
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 
@@ -43,20 +51,25 @@ namespace MicroORMSharp.Tests
         public async Task WithTransaction_Rollback_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
             try
             {
-                var customerCountBefore = await Database.Query<Customers>()
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
+
+                var customerCountBefore = await context.Query<Customers>()
                     .CountAsync();
 
-                var result = Database.WithTransaction(transaction =>
+                var result = context.WithTransaction(transaction =>
                 {
-                    customer.Insert(dbTransaction: transaction);
+                    customer.Insert(null, null, context.DatabaseType, context._connection, transaction);
                     throw new Exception("Force rollback");
                 });
 
-                var customerCountAfter = await Database.Query<Customers>()
+                var customerCountAfter = await context.Query<Customers>()
                     .CountAsync();
 
                 Assert.AreEqual(customerCountBefore, customerCountAfter, "Customer was inserted");
@@ -64,7 +77,10 @@ namespace MicroORMSharp.Tests
             }
             finally
             {
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 
@@ -73,19 +89,24 @@ namespace MicroORMSharp.Tests
         public async Task WithTransactionAsync_Commited_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
             try
             {
-                var customerCountBefore = await Database.Query<Customers>()
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
+
+                var customerCountBefore = await context.Query<Customers>()
                     .CountAsync();
 
-                var result = await Database.WithTransactionAsync(async transaction =>
+                var result = await context.WithTransactionAsync(async transaction =>
                 {
-                    await customer.InsertAsync(dbTransaction: transaction);
+                    await customer.InsertAsync(null, null, context.DatabaseType, context._connection, transaction);
                 });
 
-                var customerCountAfter = await Database.Query<Customers>()
+                var customerCountAfter = await context.Query<Customers>()
                     .CountAsync();
 
                 Assert.AreEqual(customerCountBefore + 1, customerCountAfter, "Customer wasnt inserted");
@@ -93,7 +114,10 @@ namespace MicroORMSharp.Tests
             }
             finally
             {
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 
@@ -102,20 +126,25 @@ namespace MicroORMSharp.Tests
         public async Task WithTransactionAsync_Rollback_MySql()
         {
             TestDatabaseFixture.UseMySqlConnection();
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = TestDatabaseFixture.CreateCustomer();
-            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
             try
             {
-                var customerCountBefore = await Database.Query<Customers>()
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
+
+                var customerCountBefore = await context.Query<Customers>()
                     .CountAsync();
 
-                var result = await Database.WithTransactionAsync(async transaction =>
+                var result = await context.WithTransactionAsync(async transaction =>
                 {
-                    await customer.InsertAsync(dbTransaction: transaction);
+                    await customer.InsertAsync(null, null, context.DatabaseType, context._connection, transaction);
                     throw new Exception("Force rollback");
                 });
 
-                var customerCountAfter = await Database.Query<Customers>()
+                var customerCountAfter = await context.Query<Customers>()
                     .CountAsync();
 
                 Assert.AreEqual(customerCountBefore, customerCountAfter, "Customer was inserted");
@@ -123,7 +152,10 @@ namespace MicroORMSharp.Tests
             }
             finally
             {
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
     }

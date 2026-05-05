@@ -1,5 +1,6 @@
 using System.Data;
 using System.Threading.Tasks;
+using MicroORMSharp.SqlGenerator;
 
 namespace MicroORMSharp.Tests
 {
@@ -7,78 +8,80 @@ namespace MicroORMSharp.Tests
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task ExtensionMethods_ReuseTransactionConnection_MySql()
+        public async Task InternalExtensionMethods_ReuseTransactionConnection_MySql()
         {
             UseMySqlConnection();
 
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = CreateCustomer();
-            await EnsureTableCreatedAsync(customer);
-
-            using var connection = Database.GetConnection();
-            connection.Open();
-            using var transaction = connection.BeginTransaction();
 
             try
             {
-                customer = await customer.InsertAsync(dbTransaction: transaction);
-                Assert.IsTrue(customer.Id > 0, "InsertAsync should return the inserted identity");
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
 
-                customer.Forename = "Jane";
-                customer = await customer.UpdateAsync(dbTransaction: transaction);
-                Assert.AreEqual("Jane", customer.Forename, "UpdateAsync should run inside the transaction");
+                var transactionSucceeded = await context.WithTransactionAsync(async transaction =>
+                {
+                    customer = await customer.InsertAsync(null, null, context.DatabaseType, context._connection, transaction);
+                    Assert.IsTrue(customer.Id > 0, "InsertAsync should return the inserted identity");
 
-                var exists = await customer.TableExistsAsync(dbTransaction: transaction);
-                Assert.IsTrue(exists, "TableExistsAsync should use the same transaction connection");
+                    customer.Forename = "Jane";
+                    customer = await customer.UpdateAsync(null, null, context.DatabaseType, context._connection, transaction);
+                    Assert.AreEqual("Jane", customer.Forename, "UpdateAsync should run inside the transaction");
 
-                await customer.DeleteAsync(dbTransaction: transaction);
+                    var exists = await customer.TableExistsAsync(null, null, context.DatabaseType, context._connection, transaction);
+                    Assert.IsTrue(exists, "TableExistsAsync should use the same transaction connection");
 
-                var countInTransaction = await Database.Dapper.QuerySingleAsync<int>(
-                    "SELECT COUNT(*) FROM Customers WHERE Id = @Id;",
-                    new { customer.Id },
-                    transaction: transaction
-                );
+                    await customer.DeleteAsync(null, null, context.DatabaseType, context._connection, transaction);
 
-                Assert.AreEqual(0, countInTransaction, "DeleteAsync should affect the same transaction-scoped connection");
+                    var countInTransaction = context.Query<Customers>()
+                        .Where(x => x.Id == customer.Id);
+                    countInTransaction._dbTransaction = transaction;
 
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
+                    Assert.AreEqual(0, await countInTransaction.CountAsync(), "DeleteAsync should affect the same transaction-scoped connection");
+                });
+
+                Assert.IsTrue(transactionSucceeded, "Transaction should commit successfully");
             }
             finally
             {
-                transaction?.Dispose();
-                connection?.Dispose();
-
-                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task ExtensionMethods_UseExplicitConnection_MySql()
+        public async Task ContextMethods_UseContextConnection_MySql()
         {
             UseMySqlConnection();
 
+            using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
             var customer = CreateCustomer();
-            await EnsureTableCreatedAsync(customer);
-
-            using var connection = Database.GetConnection();
-            connection.Open();
 
             try
             {
-                customer = await customer.InsertAsync(dbConnection: connection);
-                Assert.IsTrue(customer.Id > 0, "InsertAsync should use the caller-provided connection");
+                if (!await context.TableExistsAsync(customer))
+                {
+                    await context.CreateTableAsync(customer);
+                }
 
-                var exists = await customer.TableExistsAsync(dbConnection: connection);
-                Assert.IsTrue(exists, "TableExistsAsync should use the caller-provided connection");
+                customer = await context.InsertAsync(customer);
+                Assert.IsTrue(customer.Id > 0, "InsertAsync should use the context connection");
+
+                var exists = await context.TableExistsAsync(customer);
+                Assert.IsTrue(exists, "TableExistsAsync should use the context connection");
             }
             finally
             {
-                connection.Close();
-                await AssertTableDroppedAsync(customer);
+                if (await context.TableExistsAsync(customer))
+                {
+                    await context.DropTableAsync(customer);
+                }
             }
         }
     }
