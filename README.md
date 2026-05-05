@@ -35,7 +35,7 @@ dotnet add package MicroORMSharp
 ## How MicroORMSharp works
 1. Register your connection string.
 2. Create a model that implements `IMicroORMSharp`.
-3. Query data with `Database.Query<T>()`
+3. Query data with `Database.Query<T>()` or a context created with `Database.CreateContext(...)`.
 4. Call extension methods like `InsertAsync()`.
 
 ### Basic registration
@@ -253,6 +253,7 @@ var activeCustomerCount = await Database.Query<Customer>()
 
 ### Using a context
 Use `Database.CreateContext(...)` when you want a scoped connection and database type for several operations without changing the global current connection.
+Context methods use the context connection automatically. They do not expose connection or transaction parameters.
 
 ```csharp
 using var db = Database.CreateContext("ReportingMySql");
@@ -424,17 +425,13 @@ await customers.TruncateTableAsync();
 await customers.DropTableAsync();
 ```
 
-## Passing your own connection
-The write and table extension methods accept an explicit `IDbConnection` through `dbConnection`.
-This is useful when:
-- You manage the connections elsewhere
-- You want several operations to use the same connection
+## Scoped connections
+The high-level write, query, and table APIs no longer take a public `IDbConnection`. Use a context when several operations should use the same configured connection.
 
 ```csharp
-using var connection = Database.GetConnection();
-connection.Open();
+using var db = Database.CreateContext("MainMySql");
 
-var customer = new Customer
+var customer = await db.InsertAsync(new Customer
 {
     Forename = "John",
     Surname = "Doe",
@@ -444,79 +441,69 @@ var customer = new Customer
     AddressLine4 = "Test County",
     Postcode = "TE1 1ST",
     Active = true
-};
-
-customer = await customer.InsertAsync(dbConnection: connection);
-
-var exists = await customer.TableExistsAsync(dbConnection: connection);
-
-customer.Forename = "Updated";
-customer = await customer.UpdateAsync(dbConnection: connection);
-
-await customer.DeleteAsync(dbConnection: connection);
-```
-
-When `dbConnection` is provided, MicroORMSharp reuses it instead of creating a new one.
-
-## Passing your own transaction
-
-The same extension methods also accept `IDbTransaction` through `dbTransaction`.
-If a transaction is supplied, MicroORMSharp uses the transaction's connection automatically if no connection is provided
-
-```csharp
-using var connection = Database.GetConnection();
-connection.Open();
-
-using var transaction = connection.BeginTransaction();
-
-try
-{
-    var customer = new Customer
-    {
-        Forename = "John",
-        Surname = "Doe",
-        AddressLine1 = "1 Test Street",
-        AddressLine2 = "Test Town",
-        AddressLine3 = "Test City",
-        AddressLine4 = "Test County",
-        Postcode = "TE1 1ST",
-        Active = true
-    };
-
-    customer = await customer.InsertAsync(dbTransaction: transaction);
-
-    customer.Forename = "Jane";
-    customer = await customer.UpdateAsync(dbTransaction: transaction);
-
-    var exists = await customer.TableExistsAsync(dbTransaction: transaction);
-
-    if (exists)
-    {
-        await customer.DeleteAsync(dbTransaction: transaction);
-    }
-
-    transaction.Commit();
-}
-catch
-{
-    transaction.Rollback();
-    throw;
-}
-```
-This is the best approach when several operations must succeed or fail together.
-
-### Alteratively you can use the built in `Database.WithTransactionAsync` method.
-This will return true if the transaction commited or false if the transaction rolled back
-```csharp
-var result = await Database.WithTransactionAsync(async transaction =>
-{
-    await customer.InsertAsync(dbTransaction: transaction);
 });
 
-var result = await Database.WithTransactionAsync(async transaction =>
+var customers = await db.Query<Customer>()
+    .Where(x => x.Active)
+    .ExecuteAsync();
+
+customer.Forename = "Updated";
+customer = await db.UpdateAsync(customer);
+
+await db.DeleteAsync(customer);
+```
+
+You can still get a raw connection with `Database.GetConnection(...)` when you need one for your own code, or use `Database.WithConnection(...)` / `DBContext.WithConnection(...)`.
+
+## Transactions
+The high-level ORM methods do not expose public transaction parameters. Transaction support is currently available through `WithTransaction` / `WithTransactionAsync`, which pass an `IDbTransaction` to the callback and handle commit or rollback for you.
+
+Use Dapper inside the transaction callback when you need transaction-scoped work today.
+
+If the callback completes, the transaction is committed and the method returns `true`.
+If the callback throws, the transaction is rolled back and the method returns `false`.
+
+```csharp
+using var db = Database.CreateContext("MainMySql");
+
+var committed = await db.WithTransactionAsync(async transaction =>
 {
-    await customer.InsertAsync(dbTransaction: transaction);
-    transaction.Commit() //dont commit or rollback here otherwise it will throw an error that the transaction has already been commited/rolled back
+    await db.Dapper.ExecuteAsync(
+        "INSERT INTO Customers (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Active) " +
+        "VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Active);",
+        new
+        {
+            Forename = "John",
+            Surname = "Doe",
+            AddressLine1 = "1 Test Street",
+            AddressLine2 = "Test Town",
+            AddressLine3 = "Test City",
+            AddressLine4 = "Test County",
+            Postcode = "TE1 1ST",
+            Active = true
+        },
+        transaction: transaction
+    );
+
+    var count = await db.Dapper.QuerySingleAsync<int>(
+        "SELECT COUNT(*) FROM Customers;",
+        transaction: transaction
+    );
+});
+```
+
+Do not call `Commit()` or `Rollback()` inside the callback. The transaction wrapper owns that.
+
+For a global/default connection transaction, use `Database.WithTransactionAsync(...)`:
+
+```csharp
+var committed = await Database.WithTransactionAsync(async transaction =>
+{
+    await Database.Dapper.ExecuteAsync(
+        "UPDATE Customers SET Active = @Active WHERE Id = @Id;",
+        new { Active = false, Id = 1 },
+        transaction: transaction
+    );
 });
 ```
 
@@ -529,19 +516,20 @@ MicroORMSharp includes a Dapper wrapper so you can mix higher-level ORM helpers 
 - `QuerySingle`
 - `QuerySingleOrDefault`
 
-These methods also accept an explicit `connection` or `transaction`.
+These methods can accept an explicit `connection` or `transaction`. `DBContext.Dapper` is bound to the context connection.
 
 ```csharp
 var rows = await Database.Dapper.QueryAsync<Customer>(
     "SELECT * FROM Customers WHERE Active = @Active;",
     new { Active = true }
 );
+```
 
+You can also use Dapper manually with a transaction:
 
-//Using a transactiom
+```csharp
 using var connection = Database.GetConnection();
 connection.Open();
-
 using var transaction = connection.BeginTransaction();
 
 try
@@ -614,8 +602,12 @@ Nested joins are supported up to 3 levels deep. Queries that exceed that limit t
 
 ## Additional helpers
 ```csharp
-var sqlQuery = DbQuery<T>().GetSqlQuery(); //Get the underlying SQL code used for the SQL query
-var sqlParameters = DbQuery<T>().GetSqlParameters(); //Get the underlying parameters used for the SQL query
+var query = Database.Query<Customer>()
+    .Where(x => x.Active)
+    .OrderBy(x => x.Id);
+
+var sqlQuery = query.GetSqlQuery(DatabaseType.MySql);
+var sqlParameters = query.GetSqlParameters();
 ```
 
 ## Issues
