@@ -189,14 +189,14 @@ namespace MicroORMSharp
             entity.InsertOnly(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task<T> InsertAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task<T> InsertAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            return await entity.InsertAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.InsertAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task InsertOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task InsertOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.InsertOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.InsertOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
         #endregion
 
@@ -206,9 +206,9 @@ namespace MicroORMSharp
             entities.Insert(_databaseType, _connection);
         }
 
-        public async Task InsertAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
+        public Task InsertAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null) where T : IMicroORMSharp
         {
-            await entities.InsertAsync(cancellationToken, _databaseType, _connection);
+            return entities.InsertAsync(cancellationToken, _databaseType, _connection);
         }
         #endregion
 
@@ -233,24 +233,24 @@ namespace MicroORMSharp
             entity.UpdateOnly(columns, cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task<T> UpdateAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task<T> UpdateAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            return await entity.UpdateAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.UpdateAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task<T> UpdateAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task<T> UpdateAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            return await entity.UpdateAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.UpdateAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task UpdateOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task UpdateOnlyAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.UpdateOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.UpdateOnlyAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task UpdateOnlyAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task UpdateOnlyAsync<T>(T entity, Expression<Func<T, object>> columns, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.UpdateOnlyAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.UpdateOnlyAsync(columns, cancellationToken, commandTimeout, _databaseType, _connection);
         }
         #endregion
 
@@ -260,9 +260,9 @@ namespace MicroORMSharp
             entity.Delete(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task DeleteAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task DeleteAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.DeleteAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.DeleteAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
         #endregion
 
@@ -272,9 +272,9 @@ namespace MicroORMSharp
             return entity.TableExists(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task<bool> TableExistsAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task<bool> TableExistsAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            return await entity.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entity.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
         public bool TableExists<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -282,9 +282,9 @@ namespace MicroORMSharp
             return entities.TableExists(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
-        public async Task<bool> TableExistsAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task<bool> TableExistsAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            return await entities.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection);
+            return entities.TableExistsAsync(cancellationToken, commandTimeout, _databaseType, _connection);
         }
 
         public void CreateTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -292,9 +292,9 @@ namespace MicroORMSharp
             entity.CreateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task CreateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task CreateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entity.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
         public void CreateTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -302,9 +302,9 @@ namespace MicroORMSharp
             entities.CreateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task CreateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task CreateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entities.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entities.CreateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
         public void DropTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -312,9 +312,9 @@ namespace MicroORMSharp
             entity.DropTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task DropTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task DropTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entity.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
         public void DropTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -322,9 +322,9 @@ namespace MicroORMSharp
             entities.DropTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task DropTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task DropTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entities.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entities.DropTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
         public void TruncateTable<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -332,9 +332,9 @@ namespace MicroORMSharp
             entity.TruncateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task TruncateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task TruncateTableAsync<T>(T entity, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entity.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entity.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
         public void TruncateTable<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
@@ -342,9 +342,9 @@ namespace MicroORMSharp
             entities.TruncateTable(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
 
-        public async Task TruncateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
+        public Task TruncateTableAsync<T>(IEnumerable<T> entities, CancellationToken? cancellationToken = null, int? commandTimeout = null) where T : IMicroORMSharp
         {
-            await entities.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
+            return entities.TruncateTableAsync(cancellationToken, commandTimeout, _databaseType, _allowTableExtensions, _connection);
         }
         #endregion
 

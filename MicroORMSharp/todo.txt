@@ -1,3 +1,1 @@
-finish db context
-remove dbconnection and dbtransaction from normal queries, this should only be used inside of usetransaction
-make usetransaction a transaction context
+Move away from dapper for excuting sql queries

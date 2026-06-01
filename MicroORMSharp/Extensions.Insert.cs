@@ -120,13 +120,13 @@ namespace MicroORMSharp
             )), dbConnection, dbTransaction);
         }
 
-        public static async Task InsertOnlyAsync<T>(
+        public static Task InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await InsertOnlyAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
+            return InsertOnlyAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
         internal static Task InsertOnlyAsync<T>(
