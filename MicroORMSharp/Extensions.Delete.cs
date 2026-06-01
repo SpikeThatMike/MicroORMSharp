@@ -50,16 +50,16 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task DeleteAsync<T>(
+        public static Task DeleteAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DeleteAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
+            return DeleteAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
-        internal static async Task DeleteAsync<T>(
+        internal static Task DeleteAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -76,7 +76,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.DeleteRow(entity);
 
-            await WithConnectionAsync(async db =>
+            return WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),

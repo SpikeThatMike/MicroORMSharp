@@ -85,16 +85,16 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task<T> InsertAsync<T>(
+        public static Task<T> InsertAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            return await InsertAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
+            return InsertAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
-        internal static async Task<T> InsertAsync<T>(
+        internal static Task<T> InsertAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -111,7 +111,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity);
 
-            return await WithConnectionAsync(db => db.QueryFirstAsync<T>(new CommandDefinition(
+            return WithConnectionAsync(db => db.QueryFirstAsync<T>(new CommandDefinition(
                 sqlQuery.ToString(),
                 parameters: sqlQuery.Parameters,
                 cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
@@ -129,7 +129,7 @@ namespace MicroORMSharp
             await InsertOnlyAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
-        internal static async Task InsertOnlyAsync<T>(
+        internal static Task InsertOnlyAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -146,7 +146,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.InsertRow(entity, false);
 
-            await WithConnectionAsync(async db =>
+            return WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),

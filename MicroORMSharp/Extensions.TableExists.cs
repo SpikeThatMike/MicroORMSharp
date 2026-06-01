@@ -43,16 +43,16 @@ namespace MicroORMSharp
             )), dbConnection, dbTransaction);
         }
 
-        public static async Task<bool> TableExistsAsync<T>(
+        public static Task<bool> TableExistsAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            return await TableExistsAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
+            return TableExistsAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
-        internal static async Task<bool> TableExistsAsync<T>(
+        internal static Task<bool> TableExistsAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -64,13 +64,15 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.TableExists();
 
-            return await WithConnectionAsync(db => db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
-                sqlQuery.ToString(),
-                parameters: sqlQuery.Parameters,
-                cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
-                commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
-                transaction: dbTransaction
-            )), dbConnection, dbTransaction);
+            return WithConnectionAsync(async db => 
+                await db.QueryFirstOrDefaultAsync<bool>(new CommandDefinition(
+                    sqlQuery.ToString(),
+                    parameters: sqlQuery.Parameters,
+                    cancellationToken: cancellationToken ?? Database._defaultCancellationToken,
+                    commandTimeout: commandTimeout ?? Database._defaultCommandTimeout,
+                    transaction: dbTransaction
+                )
+            ), dbConnection, dbTransaction);
         }
 
         //List methods
@@ -105,16 +107,16 @@ namespace MicroORMSharp
             );
         }
 
-        public static async Task<bool> TableExistsAsync<T>(
+        public static Task<bool> TableExistsAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            return await TableExistsAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType());
+            return TableExistsAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType());
         }
 
-        internal static async Task<bool> TableExistsAsync<T>(
+        internal static Task<bool> TableExistsAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -126,7 +128,7 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            return await TableExistsAsync(
+            return TableExistsAsync(
                 entity,
                 cancellationToken,
                 commandTimeout,

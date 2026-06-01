@@ -53,16 +53,16 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task TruncateTableAsync<T>(
+        public static Task TruncateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await TruncateTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            return TruncateTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
-        internal static async Task TruncateTableAsync<T>(
+        internal static Task TruncateTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -80,7 +80,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.TruncateTable();
 
-            await WithConnectionAsync(async db =>
+            return WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -126,16 +126,16 @@ namespace MicroORMSharp
              );
         }
  
-        public static async Task TruncateTableAsync<T>(
+        public static Task TruncateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await TruncateTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            return TruncateTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
-        internal static async Task TruncateTableAsync<T>(
+        internal static Task TruncateTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -148,7 +148,7 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            await TruncateTableAsync(
+            return TruncateTableAsync(
                 entity,
                 cancellationToken,
                 commandTimeout,

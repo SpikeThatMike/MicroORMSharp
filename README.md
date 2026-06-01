@@ -456,53 +456,50 @@ await db.DeleteAsync(customer);
 You can still get a raw connection with `Database.GetConnection(...)` when you need one for your own code, or use `Database.WithConnection(...)` / `DBContext.WithConnection(...)`.
 
 ## Transactions
-The high-level ORM methods do not expose public transaction parameters. Transaction support is currently available through `WithTransaction` / `WithTransactionAsync`, which pass an `IDbTransaction` to the callback and handle commit or rollback for you.
-
-Use Dapper inside the transaction callback when you need transaction-scoped work today.
-
+No public transaction methods are exposed.
+`WithTransaction` / `WithTransactionAsync` methods will pass a `TransactionContext` object to the callback and execute the commit or rollback if there is an error.
+This includes query, extension& dapper methods, so you do not need to pass a connection or transaction into each call.
 If the callback completes, the transaction is committed and the method returns `true`.
 If the callback throws, the transaction is rolled back and the method returns `false`.
 
 ```csharp
 using var db = Database.CreateContext("MainMySql");
 
-var committed = await db.WithTransactionAsync(async transaction =>
+var committed = await db.WithTransactionAsync(async trans =>
 {
-    await db.Dapper.ExecuteAsync(
-        "INSERT INTO Customers (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Active) " +
-        "VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Active);",
-        new
-        {
-            Forename = "John",
-            Surname = "Doe",
-            AddressLine1 = "1 Test Street",
-            AddressLine2 = "Test Town",
-            AddressLine3 = "Test City",
-            AddressLine4 = "Test County",
-            Postcode = "TE1 1ST",
-            Active = true
-        },
-        transaction: transaction
+    var customer = await trans.InsertAsync(new Customer
+    {
+        Forename = "John",
+        Surname = "Doe",
+        AddressLine1 = "1 Test Street",
+        AddressLine2 = "Test Town",
+        AddressLine3 = "Test City",
+        AddressLine4 = "Test County",
+        Postcode = "TE1 1ST",
+        Active = true
+    });
+
+    await trans.Dapper.ExecuteAsync(
+        "UPDATE Customers SET Active = @Active WHERE Id = @Id;",
+        new { Active = false, customer.Id }
     );
 
-    var count = await db.Dapper.QuerySingleAsync<int>(
-        "SELECT COUNT(*) FROM Customers;",
-        transaction: transaction
+    var count = await trans.Dapper.QuerySingleAsync<int>(
+        "SELECT COUNT(*) FROM Customers;"
     );
 });
 ```
 
-Do not call `Commit()` or `Rollback()` inside the callback. The transaction wrapper owns that.
+`Commit()` and `Rollback()` are not exposed publicly.
 
 For a global/default connection transaction, use `Database.WithTransactionAsync(...)`:
 
 ```csharp
-var committed = await Database.WithTransactionAsync(async transaction =>
+var committed = await Database.WithTransactionAsync(async trans =>
 {
-    await Database.Dapper.ExecuteAsync(
+    await trans.Dapper.ExecuteAsync(
         "UPDATE Customers SET Active = @Active WHERE Id = @Id;",
-        new { Active = false, Id = 1 },
-        transaction: transaction
+        new { Active = false, Id = 1 }
     );
 });
 ```
@@ -517,6 +514,7 @@ MicroORMSharp includes a Dapper wrapper so you can mix higher-level ORM helpers 
 - `QuerySingleOrDefault`
 
 These methods can accept an explicit `connection` or `transaction`. `DBContext.Dapper` is bound to the context connection.
+Inside `WithTransaction`, `trans.Dapper` is bound to the transaction and intentionally omits connection and transaction parameters.
 
 ```csharp
 var rows = await Database.Dapper.QueryAsync<Customer>(
@@ -525,45 +523,7 @@ var rows = await Database.Dapper.QueryAsync<Customer>(
 );
 ```
 
-You can also use Dapper manually with a transaction:
-
-```csharp
-using var connection = Database.GetConnection();
-connection.Open();
-using var transaction = connection.BeginTransaction();
-
-try
-{
-    await Database.Dapper.ExecuteAsync(
-        "INSERT INTO Customers (Forename, Surname, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Postalcode, Active) " +
-        "VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Active);",
-        new
-        {
-            Forename = "John",
-            Surname = "Doe",
-            AddressLine1 = "1 Test Street",
-            AddressLine2 = "Test Town",
-            AddressLine3 = "Test City",
-            AddressLine4 = "Test County",
-            Postcode = "TE1 1ST",
-            Active = true
-        },
-        transaction: transaction
-    );
-
-    var count = await Database.Dapper.QuerySingleAsync<int>(
-        "SELECT COUNT(*) FROM Customers;",
-        transaction: transaction
-    );
-
-    transaction.Commit();
-}
-catch
-{
-    transaction.Rollback();
-    throw;
-}
-```
+For transaction-scoped raw SQL, use `WithTransaction` and call `trans.Dapper` as shown in the transaction examples.
 
 ## Join mapping
 You can define joined relationships with `DBJoin`.

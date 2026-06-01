@@ -52,16 +52,16 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task DropTableAsync<T>(
+        public static Task DropTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DropTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            return DropTableAsync(entity, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
-        internal static async Task DropTableAsync<T>(
+        internal static Task DropTableAsync<T>(
             this T entity,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -79,7 +79,7 @@ namespace MicroORMSharp
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             var sqlQuery = sqlGenerator.DropTable();
 
-            await WithConnectionAsync(async db =>
+            return WithConnectionAsync(async db =>
             {
                 await db.ExecuteAsync(new CommandDefinition(
                     sqlQuery.ToString(),
@@ -126,16 +126,16 @@ namespace MicroORMSharp
             );
         }
 
-        public static async Task DropTableAsync<T>(
+        public static Task DropTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null,
             int? commandTimeout = null
         ) where T : IMicroORMSharp
         {
-            await DropTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
+            return DropTableAsync(entities, cancellationToken, commandTimeout, Database.GetDatabaseType(), Database.GetTableExtensionsOption());
         }
 
-        internal static async Task DropTableAsync<T>(
+        internal static Task DropTableAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             int? commandTimeout,
@@ -148,7 +148,7 @@ namespace MicroORMSharp
             T entity = entities.FirstOrDefault();
             entity ??= (T)Activator.CreateInstance(typeof(T));
 
-            await DropTableAsync(
+            return DropTableAsync(
                 entity,
                 cancellationToken,
                 commandTimeout,

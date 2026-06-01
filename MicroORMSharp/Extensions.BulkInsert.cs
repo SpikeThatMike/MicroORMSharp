@@ -37,7 +37,7 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entities));
             }
 
-            if (entities.Count() == 0)
+            if (!entities.Any())
             {
                 return;
             }
@@ -54,19 +54,26 @@ namespace MicroORMSharp
 
                 if (db is SqlConnection)
                 {
-                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(db as SqlConnection, SqlBulkCopyOptions.Default, dbTransaction as SqlTransaction))
-                    {
-                        bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
+                    using SqlBulkCopy bulkCopy = new SqlBulkCopy(
+                        db as SqlConnection,
+                        SqlBulkCopyOptions.Default,
+                        dbTransaction as SqlTransaction
+                    );
+                    bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
 
-                        DataTable table = ConvertToDataTable(sqlGenerator, entities);
+                    DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
-                        bulkCopy.WriteToServer(table);
-                    }
+                    bulkCopy.WriteToServer(table);
                 }
                 else if (db is MySqlConnection)
                 {
-                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(db as MySqlConnection, dbTransaction as MySqlTransaction);
-                    bulkCopy.DestinationTableName = sqlGenerator.GetFullTableName();
+                    MySqlBulkCopy bulkCopy = new MySqlBulkCopy(
+                        db as MySqlConnection,
+                        dbTransaction as MySqlTransaction
+                    )
+                    {
+                        DestinationTableName = sqlGenerator.GetFullTableName()
+                    };
 
                     DataTable table = ConvertToDataTable(sqlGenerator, entities);
 
@@ -75,15 +82,15 @@ namespace MicroORMSharp
             }, dbConnection, dbTransaction);
         }
 
-        public static async Task InsertAsync<T>(
+        public static Task InsertAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken = null
         ) where T : IMicroORMSharp
         {
-            await InsertAsync(entities, cancellationToken, Database.GetDatabaseType());
+            return InsertAsync(entities, cancellationToken, Database.GetDatabaseType());
         }
 
-        internal static async Task InsertAsync<T>(
+        internal static Task InsertAsync<T>(
             this IEnumerable<T> entities,
             CancellationToken? cancellationToken,
             DatabaseType databaseType,
@@ -96,15 +103,15 @@ namespace MicroORMSharp
                 throw new ArgumentNullException(nameof(entities));
             }
 
-            if (entities.Count() == 0)
+            if (!entities.Any())
             {
-                return;
+                return Task.CompletedTask;
             }
 
             SqlGenerator<T> sqlGenerator = new SqlGenerator<T>(databaseType);
             sqlGenerator.ValidateAttributes(entities);
 
-            await WithConnectionAsync(async db =>
+            return WithConnectionAsync(async db =>
             {
                 if (db.State != ConnectionState.Open)
                 {

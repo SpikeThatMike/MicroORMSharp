@@ -239,17 +239,25 @@ namespace MicroORMSharp
         #endregion
 
         #region Transactions
-        public static bool WithTransaction(Action<IDbTransaction> action, IDbConnection dbConnection = null)
+        public static bool WithTransaction(Action<TransactionContext> action)
         {
-            var conn = dbConnection ?? GetConnection();
-            bool ownConnection = dbConnection == null;
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
 
-            conn.Open();
+            using var conn = GetConnection();
+
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
             using var transaction = conn.BeginTransaction();
 
             try
             {
-                action(transaction);
+                action(new TransactionContext(conn, transaction, GetDatabaseType(), GetTableExtensionsOption()));
 
                 transaction.Commit();
                 return true;
@@ -258,27 +266,28 @@ namespace MicroORMSharp
             {
                 transaction.Rollback();
                 return false;
-            }
-            finally
-            {
-                if (ownConnection)
-                {
-                    conn.Dispose();
-                }
-            }
+            }     
         }
 
-        public static async Task<bool> WithTransactionAsync(Func<IDbTransaction, Task> action, IDbConnection dbConnection = null)
+        public static async Task<bool> WithTransactionAsync(Func<TransactionContext, Task> action)
         {
-            var conn = dbConnection ?? GetConnection();
-            bool ownConnection = dbConnection == null;
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
 
-            conn.Open();
+            using var conn = GetConnection();
+
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
             using var transaction = conn.BeginTransaction();
 
             try
             {
-                await action(transaction);
+                await action(new TransactionContext(conn, transaction, GetDatabaseType(), GetTableExtensionsOption()));
 
                 transaction.Commit();
                 return true;
@@ -287,13 +296,6 @@ namespace MicroORMSharp
             {
                 transaction.Rollback();
                 return false;
-            }
-            finally
-            {
-                if (ownConnection)
-                {
-                    conn.Dispose();
-                }
             }
         }
         #endregion
@@ -301,7 +303,12 @@ namespace MicroORMSharp
         #region Helper methods
         public static DatabaseType GetDatabaseType()
         {
-            return _currentConnection?.DatabaseType ?? DatabaseType.SqlServer;
+            if (_currentConnection == null)
+            {
+                throw new Exception("No connection set");
+            }
+
+            return _currentConnection.DatabaseType;
         }
 
         private static DatabaseType GetDatabaseType<T>(DbQuery<T> dbQuery) where T : IMicroORMSharp

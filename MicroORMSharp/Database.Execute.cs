@@ -43,7 +43,7 @@ namespace MicroORMSharp
             }, dbQuery);
         }
 
-        public static async Task<IEnumerable<T>> ExecuteAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
+        public static Task<IEnumerable<T>> ExecuteAsync<T>(this DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             if (dbQuery == null)
             {
@@ -54,11 +54,11 @@ namespace MicroORMSharp
 
             if (sqlGenerator.JoinProperties.Any())
             {
-                return await ExecuteJoinAsync(dbQuery, sqlGenerator);
+                return ExecuteJoinAsync(dbQuery, sqlGenerator);
             }
 
             var sqlQuery = sqlGenerator.Select(dbQuery);
-            return await WithQueryConnectionAsync(async db =>
+            return WithQueryConnectionAsync(async db =>
             {
                 return await db.QueryAsync<T>(
                     new CommandDefinition(
@@ -79,7 +79,7 @@ namespace MicroORMSharp
             }
 
             var selector = dbQuery.Selector.Compile();
-            return dbQuery.Query.Execute().Select(selector).ToList();
+            return dbQuery.Query.Execute().Select(selector);
         }
 
         public static async Task<IEnumerable<Result>> ExecuteAsync<T, Result>(this DbProjectionQuery<T, Result> dbQuery) where T : IMicroORMSharp
@@ -90,7 +90,7 @@ namespace MicroORMSharp
             }
 
             var selector = dbQuery.Selector.Compile();
-            return (await dbQuery.Query.ExecuteAsync()).Select(selector).ToList();
+            return (await dbQuery.Query.ExecuteAsync()).Select(selector);
         }
 
         private static IEnumerable<T> ExecuteJoin<T>(this DbQuery<T> dbQuery, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp
@@ -139,15 +139,15 @@ namespace MicroORMSharp
             return WithConnection(action);
         }
 
-        private static async Task<TResult> WithQueryConnectionAsync<T, TResult>(Func<IDbConnection, Task<TResult>> action, DbQuery<T> dbQuery) where T : IMicroORMSharp
+        private static Task<TResult> WithQueryConnectionAsync<T, TResult>(Func<IDbConnection, Task<TResult>> action, DbQuery<T> dbQuery) where T : IMicroORMSharp
         {
             var existingConnection = dbQuery._dbConnection ?? dbQuery._dbTransaction?.Connection;
             if (existingConnection != null)
             {
-                return await action(existingConnection);
+                return action(existingConnection);
             }
 
-            return await WithConnectionAsync(action);
+            return WithConnectionAsync(action);
         }
 
         private static List<T> MapJoinedRows<T>(IEnumerable<dynamic> rows, SqlGenerator<T> sqlGenerator) where T : IMicroORMSharp

@@ -124,7 +124,7 @@ namespace MicroORMSharp
             }
         }
 
-        public bool WithTransaction(Action<IDbTransaction> action)
+        public bool WithTransaction(Action<TransactionContext> action)
         {
             if (action == null)
             {
@@ -136,7 +136,7 @@ namespace MicroORMSharp
 
             try
             {
-                action(transaction);
+                action(new TransactionContext(_connection, transaction, _databaseType, _allowTableExtensions));
                 transaction.Commit();
                 return true;
             }
@@ -151,7 +151,7 @@ namespace MicroORMSharp
             }
         }
 
-        public async Task<bool> WithTransactionAsync(Func<IDbTransaction, Task> action)
+        public async Task<bool> WithTransactionAsync(Func<TransactionContext, Task> action)
         {
             if (action == null)
             {
@@ -163,7 +163,7 @@ namespace MicroORMSharp
 
             try
             {
-                await action(transaction);
+                await action(new TransactionContext(_connection, transaction, _databaseType, _allowTableExtensions));
                 transaction.Commit();
                 return true;
             }
