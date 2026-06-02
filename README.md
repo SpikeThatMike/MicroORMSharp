@@ -1,11 +1,11 @@
 ﻿# MicroORMSharp
-**MicroORMSharp** is a lightweight micro ORM for .NET built on top of Dapper. It focuses on the common operations
+**MicroORMSharp** is a lightweight ORM for .NET built on Dapper.
 - CRUD operations (inserts, updates, deletes)
 - Querying with LINQ-style API
-- Querying data with LEFT,INNER,RIGHT joins with nested join support
+- LEFT, INNER, RIGHT joins (nested join support)
 - Optional table operations (create, drop, truncate, exists)
 - Bulk insert support
-- The ability use native Dapper methods without handling connections
+- Dapper methods without handling connections
 
 Designed to be reduce repetitive SQL and object mapping.
 
@@ -17,23 +17,23 @@ Designed to be reduce repetitive SQL and object mapping.
 
 
 ### ⚠SQL Server support⚠
-> SQL Server integration has not been fully tested and may have unwanted side effects, unexpected behavior, or provider-specific issues. If you use SQL Server, test carefully in a non-production environment before relying on it in live systems.
-> The main reason for this I use a locally hosted MySQL for my projects and do not currently have access to a SQL server database
+> SQL Server integration has not been tested and may have unwanted side effects, unexpected behavior, or SQL server specific issues. If you want top use SQL Server, use in a development environment to identify any issues beforehand.
+> The reason behind this, is I use a locally hosted MySQL for my projects and do not currently have access to a SQL server database
 
 ### Supported versions
 | Version | Supported .NET versions |
 | --- | --- |
 | `1.x` | `.NET Core 3.0`, `.NET 5`, `.NET 6`, `.NET 7`, `.NET 8`, `.NET 9`, `.NET 10` |
 
-`MicroORMSharp` currently targets `.NET Standard 2.1`, so `.NET Framework` is not supported by the `1.x` package line.
+`MicroORMSharp` currently targets `.NET Standard 2.1`, so `.NET Framework` is not supported.
 
 ## Installation
 ```bash
 dotnet add package MicroORMSharp
 ```
 
-## How MicroORMSharp works
-1. Register your connection string.
+## How it works
+1. Register your connection.
 2. Create a model that implements `IMicroORMSharp`.
 3. Query data with `Database.Query<T>()` or a context created with `Database.CreateContext(...)`.
 4. Call extension methods like `InsertAsync()`.
@@ -86,71 +86,17 @@ Database.RemoveConnectionString("ReportingMySql");
 ```
 
 #### When to use `allowTableExtensions`
-Set `allowTableExtensions: true` if you want to use table extension methods:
+Set `allowTableExtensions: true` if you want to use table extension methods, async methods available:
 
 - `CreateTable()`
-- `CreateTableAsync()`
 - `DropTable()`
-- `DropTableAsync()`
 - `TruncateTable()`
-- `TruncateTableAsync()`
 
-If this flag is not enabled for the active connection reference, those methods will throw an exception.
+If the flag is not enabled for the active connection reference, an exception will be throw.
 
-## Handling connection strings properly
-In most use cases, avoid hardcoding connection strings in source:
-- Store in `appsettings.json`, user secrets, environment variables, or your secret store
-- Read at startup
-- Register them once with `Database.AddConnectionString(...)`
-
-`appsettings.json`
-```json
-{
-  "ConnectionStrings": {
-    "MainDb": "Server=.;Database=AppDb;Trusted_Connection=True;TrustServerCertificate=True;",
-    "ReportingDb": "Server=localhost;Database=ReportingDb;User ID=app;Password=secret;Port=3306;"
-  }
-}
-```
-
-`Program.cs`
-
-```csharp
-using MicroORMSharp;
-using MicroORMSharp.SqlGenerator;
-
-var builder = WebApplication.CreateBuilder(args);
-
-Database.AddConnectionString(
-    DatabaseType.SqlServer,
-    reference: "MainDb",
-    sqlConnection: builder.Configuration.GetConnectionString("MainDb")!,
-    allowTableExtensions: true
-);
-```
-```csharp
-using Microsoft.Extensions.Configuration;
-using MicroORMSharp;
-using MicroORMSharp.SqlGenerator;
-
-var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json", optional: true)
-    .AddEnvironmentVariables()
-    .Build();
-
-var sqlServerConnection = configuration.GetConnectionString("MainDb")
-    ?? throw new InvalidOperationException("Missing connection string: MainDb");
-
-Database.AddConnectionString(
-    DatabaseType.SqlServer,
-    "MainDb",
-    sqlServerConnection,
-    allowTableExtensions: true
-);
-```
 
 ## Initialising Database
-Initialise the database classes, this creates a cache of all models & properties instead of doing reflection at runtime to retrieve these. This is recommended to run at the start of your application.
+Initialise the database classes, this creates a cache of all models & properties instead of doing reflection at runtime. This is recommended to run at the start of your application but will self initialise if not.
 
 ```csharp
 Database.Initialise();
@@ -170,6 +116,8 @@ public class Customer : IMicroORMSharp
     [DbIdentity]
     public long Id { get; set; }
 
+    [DbMaxLength(20)]
+    [DbDefault("guest")]
     public string Forename { get; set; }
     public string Surname { get; set; }
     public string AddressLine1 { get; set; }
@@ -177,9 +125,14 @@ public class Customer : IMicroORMSharp
     public string AddressLine3 { get; set; }
     public string AddressLine4 { get; set; }
 
+    [DbPrecision(10, 3)]
+    [DbDefault(12.345)]
+    public decimal Amount { get; set; }
+
     [DbColumn("Postalcode")]
     public string Postcode { get; set; }
 
+    [DbDefault(true)]
     public bool Active { get; set; }
 
     [DbIgnore]
@@ -188,52 +141,27 @@ public class Customer : IMicroORMSharp
 ```
 
 ### Attribute reference
-- `[DbTable("Customers")]` map to the table
-- `[DbTable("MyDatabase", "dbo", "Customers")]` map to the table
-- `[DbColumn("Postalcode")]` map a property when the C# property doesn't match the table schema
+- `[DbTable("Customers")]` table name
+- `[DbTable("MyDatabase", "dbo", "Customers")]` table name
+- `[DbColumn("Postalcode")]` map a table column to a property when the name doesn't match
 - `[DbIdentity]` marks the identity/primary key column used by insert/update/delete behavior
-- `[DbIgnore]` the property will be ignored completely. This is good for combining properties together or for properties that are not mapped to the database at all, such as calculated properties
+- `[DbIgnore]` the property will be ignored. Used for combining properties or properties not mapped to the database
 - `[DbMaxLength(20)]` limits a string column length and validates values before insert/update
 - `[DbPrecision(10, 3)]` configures decimal precision and scale for create table generation
-- `[DbDefault("guest")]`, `[DbDefault(12.345)]`, `[DbDefault(7)]`, `[DbDefault(true)]` define column defaults used in table creation and when null values are inserted or updated
+- `[DbDefault("guest")]`, `[DbDefault(12.345)]`, `[DbDefault(7)]`, `[DbDefault(true)]` define defaults used in table creation and when null values are inserted or updated
 
-If you use the table extension methods to create tables, these attributes are used to generate the correct SQL schema.
-When using `[DbMaxLength(20)]` on a string property, if you try to insert or update a value longer than 20 characters, an exception is thrown to prevent data truncation before it hits the database.
-
-Attributes used for table creation:
-```csharp
-[DbTable("ConfiguredEntities")]
-public class AttributeExample : IMicroORMSharp
-{
-    [DbIdentity]
-    public long Id { get; set; }
-
-    [DbMaxLength(20)]
-    [DbDefault("guest")]
-    public string? Name { get; set; }
-
-    [DbPrecision(10, 3)]
-    [DbDefault(12.345)]
-    public decimal? Amount { get; set; }
-
-    [DbDefault(7)]
-    public int? Quantity { get; set; }
-
-    [DbDefault(true)]
-    public bool? IsEnabled { get; set; }
-}
-```
+Using the table extension methods to create tables, these attributes are used to generate the correct SQL schema.
+When using `[DbMaxLength(20)]` on a property, if you try to insert or update a value longer than 20 characters, an exception is thrown to prevent data truncation before it hits the database.
 
 ## Querying data
 ### Basic query examples
 - `Execute()`
-- `ExecuteAsync()`
 - `ExecuteSingle()`
-- `ExecuteSingleAsync()`
 - `Any()`
-- `AnyAsync()`
 - `Count()`
-- `CountAsync()`
+
+Async methods are available
+
 ```csharp
 var customers = await Database.Query<Customer>()
     .ExecuteAsync();
@@ -252,8 +180,9 @@ var activeCustomerCount = await Database.Query<Customer>()
 ```
 
 ### Using a context
-Use `Database.CreateContext(...)` when you want a scoped connection and database type for several operations without changing the global current connection.
+Use `Database.CreateContext(...)` when you want a scoped connection and database type for several operations without changing the global connection.
 Context methods use the context connection automatically. They do not expose connection or transaction parameters.
+However you will notice the syntax slightly differs for insert,update,delete. You must pass the object in rather than using an extension method
 
 ```csharp
 using var db = Database.CreateContext("ReportingMySql");
@@ -274,12 +203,12 @@ var count = await db.Dapper.QuerySingleAsync<int>(
 ```
 
 ### Selecting columns
-`Select` allows you to specify which columns to query while still returning the entity type. This is useful when you only need a subset of the columns for read-only operations, and want to avoid querying unnecessary data.
-`SelectTo` allows you to project the result into a different class, which is useful when you want to return a custom shape of data that doesn't match the entity type, such as a DTO or an anonymous type. This can help reduce over-fetching and improve performance by only querying the columns that are needed for the projection.
-You can use either `Select` or `SelectTo` depending on your needs, if you use both, an exception is thrown.
+`Select` allows you to specify columns to query while returning the entity type. Used for when you need a subset of the columns and want to avoid querying unnecessary data.
+`SelectTo` allows you to map the result into a different class used when you want to return a custom class that doesn't match the entity type. This can help reduce over-fetching and improve performance by only querying the columns that are needed for the projection.
+You can use either `Select` or `SelectTo` depending on your needs, you cannot use both in the samw query.
 
 `Select` can be used anywhere in the query chain
-`SelectTo` can only be used last in the query chain before `Execute`, `ExecuteAsync`, `ExecuteSingle`, or `ExecuteSingleAsync`. This is because `SelectTo` switches from `DbQuery<T>` into a projection wrapper that is responsible for the final mapping step.
+`SelectTo` can only be used last in the query chain before `Execute` or `ExecuteSingle`. This is because `SelectTo` switches from `DbQuery<T>` into a wrapper that is responsible for the final mapping step.
 
 Similar to `Select`, `SelectTo` will only query the columns needed for the projection.
 
@@ -300,7 +229,7 @@ var customerNames = await Database.Query<Customer>()
 ```
 
 ### Filtering, ordering, limiting, and pagination
-You can add where clauses, order by columns, take top results, and paginate query results.
+Where clauses, Order by columns, take top results, and paginate results.
 ```csharp
 var customers = await Database.Query<Customer>()
     .Where(x => x.Id > 10 && x.Active)
@@ -312,7 +241,7 @@ var customers = await Database.Query<Customer>()
     .ExecuteAsync();
 
 var customers = await Database.Query<Customer>()
-    .Take(10)
+    .Take(10) //MySQL limit, SQL server TOP
     .ExecuteAsync();
 
 var customers = await Database.Query<Customer>()
@@ -325,10 +254,10 @@ var customers = await Database.Query<Customer>()
 - MySQL uses `LIMIT ... OFFSET ...`
 - SQL Server uses `ORDER BY ... OFFSET ... ROWS FETCH NEXT ... ROWS ONLY`
 
-For SQL Server pagination a ORDER BY clause is required, if you do not specify one, it will fall back to the identity column or the first column when no identity is found.
+For SQL Server pagination a `ORDER BY` clause is required, if none is specified, it will fall back to the identity column or the first column when no identity is found.
 
 ### Timeout and cancellation token
-You can set timeout and cancellation token per query or default them
+Set timeout and cancellation token per query or default for all operations
 ```csharp
 var customers = await Database.Query<Customer>()
     .SetTimeout(30)
@@ -340,9 +269,9 @@ Database.SetDefaultCancellationToken(cancellationToken);
 ```
 
 ## Insert, update, and delete
-The entity extension methods are the main write API.
+
 ### Insert
-`Insert` / `InsertAsync` returns the inserted entity, including the generated identity value where supported.
+`Insert` returns the inserted entity, including the generated identity value where supported.
 
 ```csharp
 var customer = new Customer
@@ -384,45 +313,41 @@ await customers.InsertAsync();
 ```
 
 ### Update
-`Update` / `UpdateAsync` returns the updated entity.
+`Update` updates a row from the table off the identity.
+Returns the updated entity by automatically requerying the database. Use UpdateOnly if you don't want this functionality
 ```csharp
 customer.Forename = "Jane";
 
 customer = customer.Update();
-customer = await customer.UpdateAsync();
 customer = customer.Update(x => new { x.Forename, x.Postcode });
-customer = await customer.UpdateAsync(x => new { x.Forename, x.Postcode });
 
 //If you only want to execute the update:
 customer.UpdateOnly();
-await customer.UpdateOnlyAsync();
 customer.UpdateOnly(x => new { x.Forename, x.Postcode });
-await customer.UpdateOnlyAsync(x => new { x.Forename, x.Postcode });
 ```
 When a selector is supplied, only the chosen mapped, non-identity columns are included in the `UPDATE` statement.
 By default when an update is executed, all mapped, non-identity columns are included in the `UPDATE` statement.
 
 ### Delete
+`Delete` deletes a row from the table off the identity
 ```csharp
-await customer.DeleteAsync();
+customer.Delete();
 ```
 
 ## Table helper methods
 These methods require `allowTableExtensions: true` on the connection registration.
 ```csharp
-//On a T which implements IMicroORMSharp
 var customer = new Customer();
-var exists = await customer.TableExistsAsync();
-await customer.CreateTableAsync();
-await customer.TruncateTableAsync();
-await customer.DropTableAsync();
-
-//On a List<T> which implements IMicroORMSharp
+var exists = await customer.TableExists();
+customer.CreateTable();
+customer.TruncateTable();
+customer.DropTable();
+ 
 var customers = new List<Customer>();
-var exists = await customers.TableExistsAsync();
-await customers.CreateTableAsync();
-await customers.TruncateTableAsync();
-await customers.DropTableAsync();
+var exists = await customers.TableExists();
+customers.CreateTable();
+customers.TruncateTable();
+customers.DropTable();
 ```
 
 ## Scoped connections
@@ -458,7 +383,7 @@ You can still get a raw connection with `Database.GetConnection(...)` when you n
 ## Transactions
 No public transaction methods are exposed.
 `WithTransaction` / `WithTransactionAsync` methods will pass a `TransactionContext` object to the callback and execute the commit or rollback if there is an error.
-This includes query, extension& dapper methods, so you do not need to pass a connection or transaction into each call.
+This includes query, extension & dapper methods, so you do not need to pass a connection or transaction into each call.
 If the callback completes, the transaction is committed and the method returns `true`.
 If the callback throws, the transaction is rolled back and the method returns `false`.
 
@@ -505,16 +430,16 @@ var committed = await Database.WithTransactionAsync(async trans =>
 ```
 
 ## Using raw Dapper through `Database.Dapper`
-MicroORMSharp includes a Dapper wrapper so you can mix higher-level ORM helpers with raw SQL in the same codebase. Available wrappers include:
-- `Execute` / `ExecuteAsync`
-- `Query` / `QueryAsync`
+MicroORMSharp includes a Dapper wrapper so you can mix MicroORMSharp with SQLe. Available wrappers include:
+- `Execute`
+- `Query`
 - `QueryFirst`
 - `QueryFirstOrDefault`
 - `QuerySingle`
 - `QuerySingleOrDefault`
 
 These methods can accept an explicit `connection` or `transaction`. `DBContext.Dapper` is bound to the context connection.
-Inside `WithTransaction`, `trans.Dapper` is bound to the transaction and intentionally omits connection and transaction parameters.
+Inside `WithTransaction`, `transactiom.Dapper` is bound to the transaction and intentionally omits connection and transaction parameters. If you provide these inside of a command definition, an error will be throw.
 
 ```csharp
 var rows = await Database.Dapper.QueryAsync<Customer>(
@@ -526,7 +451,7 @@ var rows = await Database.Dapper.QueryAsync<Customer>(
 For transaction-scoped raw SQL, use `WithTransaction` and call `trans.Dapper` as shown in the transaction examples.
 
 ## Join mapping
-You can define joined relationships with `DBJoin`.
+You can define joined relationships with `DBJoin` passing in the join class type, the key to join on the main table, the key on the joined table and join type.
 ```csharp
 [DbTable("Customer")]
 public class CustomerWithOrders : IMicroORMSharp
