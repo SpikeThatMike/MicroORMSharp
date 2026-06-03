@@ -1,4 +1,4 @@
-namespace MicroORMSharp.Tests.MySql.Models
+namespace MicroORMSharp.Tests.Models
 {
     public class CustomerName
     {

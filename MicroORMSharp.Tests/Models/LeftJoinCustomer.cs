@@ -2,7 +2,7 @@ using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 using System.Collections.Generic;
 
-namespace MicroORMSharp.Tests.MySql.Models
+namespace MicroORMSharp.Tests.Models
 {
     [DbTable("LeftJoinCustomer")]
     public class LeftJoinCustomer : IMicroORMSharp

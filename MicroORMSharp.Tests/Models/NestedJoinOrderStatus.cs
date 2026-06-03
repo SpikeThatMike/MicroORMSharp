@@ -1,7 +1,7 @@
 using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 
-namespace MicroORMSharp.Tests.MySql.Models
+namespace MicroORMSharp.Tests.Models
 {
     [DbTable("NestedJoinOrderStatus")]
     public class NestedJoinOrderStatus : IMicroORMSharp

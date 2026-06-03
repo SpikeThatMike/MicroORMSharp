@@ -6,10 +6,13 @@ using MicroORMSharp.SqlGenerator.Interfaces;
 
 namespace MicroORMSharp.Tests.MySql
 {
-    internal static class TestDatabaseFixture
+    public static class TestDatabaseFixture
     {
-        internal const string MySqlReference = "MySql";
+        public const string MySqlReference = "MySql";
         private const string MySqlConnectionString = "Server=localhost;Database=test;User ID=root;Password=admin;Port=3306;AllowLoadLocalInfile=true";
+
+        public const string SqlServerReference = "SqlServer";
+        private const string SqlServerConnectionString = "Data Source=localhost,1433;User ID=sa;Password=Test1234;TrustServerCertificate=True";
 
         public static void EnsureMySqlConnection()
         {
@@ -24,9 +27,27 @@ namespace MicroORMSharp.Tests.MySql
             }
         }
 
+        public static void EnsureSqlServerConnection()
+        {
+            if (Database.GetAllConnections().All(x => x.Reference != SqlServerReference))
+            {
+                Database.AddConnectionString(
+                    DatabaseType.SqlServer,
+                    SqlServerReference,
+                    SqlServerConnectionString,
+                    allowTableExtensions: true
+                );
+            }
+        }
+
         public static void UseMySqlConnection()
         {
             Database.SetConnectionString(MySqlReference);
+        }
+
+        public static void UseSqlServerConnection()
+        {
+            Database.SetConnectionString(SqlServerReference);
         }
 
         public static Customers CreateCustomer(string suffix = "")

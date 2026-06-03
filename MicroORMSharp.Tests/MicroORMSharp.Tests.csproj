@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MicroORMSharp.SQLGenerator\MicroORMSharp.SqlGenerator.csproj" />
-    <ProjectReference Include="..\MicroORMSharp.Tests\MicroORMSharp.Tests.csproj" />
     <ProjectReference Include="..\MicroORMSharp\MicroORMSharp.csproj" />
   </ItemGroup>
 

@@ -1,7 +1,7 @@
 using MicroORMSharp.SqlGenerator.Attributes;
 using MicroORMSharp.SqlGenerator.Interfaces;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     [DbTable("ConfiguredEntities")]
     public class AttributeTestTable : IMicroORMSharp

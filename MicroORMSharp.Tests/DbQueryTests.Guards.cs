@@ -1,9 +1,9 @@
 using MicroORMSharp.SqlGenerator;
-using MicroORMSharp.Tests.MySql.Models;
+using MicroORMSharp.Tests.Models;
 using System;
 using System.Linq.Expressions;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     [TestClass]
     public sealed class DbQueryGuards

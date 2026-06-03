@@ -3,7 +3,7 @@ using MicroORMSharp.SqlGenerator.Interfaces;
 using System;
 using System.Collections.Generic;
 
-namespace MicroORMSharp.Tests.MySql.Models
+namespace MicroORMSharp.Tests.Models
 {
     [DbTable("JoinTestCustomer")]
     public class TestJoinCustomer : IMicroORMSharp

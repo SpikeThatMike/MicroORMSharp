@@ -1,6 +1,6 @@
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
-using MicroORMSharp.Tests.MySql.Models;
+using MicroORMSharp.Tests.Models;
 
 namespace MicroORMSharp.Tests.MySql
 {

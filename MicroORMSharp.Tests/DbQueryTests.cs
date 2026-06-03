@@ -1,13 +1,13 @@
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Attributes;
-using MicroORMSharp.Tests.MySql.Models;
+using MicroORMSharp.Tests.Models;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     [TestClass]
-    public sealed class DbQuery
+    public sealed class DbQueryTests
     {
         [TestMethod]
         public void DbQuery_Take_SetsTakeValue()

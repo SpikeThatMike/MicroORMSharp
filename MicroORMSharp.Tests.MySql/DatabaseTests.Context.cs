@@ -1,5 +1,4 @@
 using MicroORMSharp.SqlGenerator;
-using MicroORMSharp.Tests.MySql.Models;
 
 namespace MicroORMSharp.Tests.MySql
 {

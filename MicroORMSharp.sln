@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.SqlServer", "MicroORMSharp.Tests.SqlServer\MicroORMSharp.Tests.SqlServer.csproj", "{7A292180-26D1-40FE-8636-76DA70971F82}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests", "MicroORMSharp.Tests\MicroORMSharp.Tests.csproj", "{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{7A292180-26D1-40FE-8636-76DA70971F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A292180-26D1-40FE-8636-76DA70971F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A292180-26D1-40FE-8636-76DA70971F82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
