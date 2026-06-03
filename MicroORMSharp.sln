@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator.Tests", "MicroORMSharp.SQLGenerator.Tests\MicroORMSharp.SqlGenerator.Tests.csproj", "{F7238353-484C-4220-BA51-1D1E16C61EF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests", "MicroORMSharp.Tests\MicroORMSharp.Tests.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql", "MicroORMSharp.Tests\MicroORMSharp.Tests.MySql.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.SqlServer", "MicroORMSharp.Tests.SqlServer\MicroORMSharp.Tests.SqlServer.csproj", "{7A292180-26D1-40FE-8636-76DA70971F82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,8 +35,15 @@ Global
 		{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A292180-26D1-40FE-8636-76DA70971F82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A292180-26D1-40FE-8636-76DA70971F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A292180-26D1-40FE-8636-76DA70971F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A292180-26D1-40FE-8636-76DA70971F82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A219E03-0EBE-4BBD-9ADC-6E74B3FD8507}
 	EndGlobalSection
 EndGlobal

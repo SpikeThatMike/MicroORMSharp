@@ -154,7 +154,7 @@ jobs:
         run: dotnet test MicroORMSharp.SQLGenerator.Tests/MicroORMSharp.SqlGenerator.Tests.csproj --configuration Release --no-build --settings ci.runsettings
 
       - name: Test MicroORMSharp project
-        run: dotnet test MicroORMSharp.Tests/MicroORMSharp.Tests.csproj --configuration Release --no-build --settings ci.runsettings
+        run: dotnet test MicroORMSharp.Tests.MySql/MicroORMSharp.Tests.MySql.csproj --configuration Release --no-build --settings ci.runsettings
 
       - name: Pack
         run: dotnet pack MicroORMSharp.sln --configuration Release --no-build --output ./artifacts/packages /p:PackageVersion=${{ steps.version.outputs.package_version }}

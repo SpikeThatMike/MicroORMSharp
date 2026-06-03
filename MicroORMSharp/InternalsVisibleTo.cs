@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("MicroORMSharp.Tests")]
+[assembly: InternalsVisibleTo("MicroORMSharp.Tests.MySql")]
