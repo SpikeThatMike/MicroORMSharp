@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator.Tests", "MicroORMSharp.SQLGenerator.Tests\MicroORMSharp.SqlGenerator.Tests.csproj", "{F7238353-484C-4220-BA51-1D1E16C61EF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql", "MicroORMSharp.Tests\MicroORMSharp.Tests.MySql.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql", "MicroORMSharp.Tests.MySql\MicroORMSharp.Tests.MySql.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.SqlServer", "MicroORMSharp.Tests.SqlServer\MicroORMSharp.Tests.SqlServer.csproj", "{7A292180-26D1-40FE-8636-76DA70971F82}"
 EndProject
