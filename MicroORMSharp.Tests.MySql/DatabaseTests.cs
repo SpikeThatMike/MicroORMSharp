@@ -16,7 +16,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task Execute_MySql()
+        public async Task Execute()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -41,7 +41,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task ExecuteSingle_MySql()
+        public async Task ExecuteSingle()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -67,7 +67,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task Execute_SelectTo_MySql()
+        public async Task Execute_SelectTo()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -111,7 +111,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task ExecuteSingle_SelectTo_MySql()
+        public async Task ExecuteSingle_SelectTo()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -147,7 +147,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task ExecuteSingle_SelectTo_NoRowExists_MySql()
+        public async Task ExecuteSingle_SelectTo_NoRowExists()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -178,7 +178,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task Any_MySql()
+        public async Task Any()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -200,7 +200,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task Count_MySql()
+        public async Task Count()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -222,7 +222,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task DbQueryMethods_Pagination_MySql()
+        public async Task DbQueryMethods_Pagination()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -253,22 +253,6 @@ namespace MicroORMSharp.Tests.MySql
             finally
             {
                 await TestDatabaseFixture.AssertTableDroppedAsync(customers);
-            }
-        }
-
-        private static async Task EnsureTableCreatedAsync<T>(T entity) where T : IMicroORMSharp
-        {
-            if (!await entity.TableExistsAsync())
-            {
-                await entity.CreateTableAsync();
-            }
-        }
-
-        private static async Task DropTableIfExistsAsync<T>(T entity) where T : IMicroORMSharp
-        {
-            if (await entity.TableExistsAsync())
-            {
-                await entity.DropTableAsync();
             }
         }
     }

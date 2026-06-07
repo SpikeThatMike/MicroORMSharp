@@ -11,7 +11,7 @@ namespace MicroORMSharp.Tests.MySql
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransaction_Commited_MySql()
+        public async Task WithTransaction_Commited()
         {
             TestDatabaseFixture.UseMySqlConnection();
             using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
@@ -39,16 +39,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransaction_Rollback_MySql()
+        public async Task WithTransaction_Rollback()
         {
             TestDatabaseFixture.UseMySqlConnection();
             using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
@@ -77,16 +74,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransactionAsync_Commited_MySql()
+        public async Task WithTransactionAsync_Commited()
         {
             TestDatabaseFixture.UseMySqlConnection();
             using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
@@ -114,16 +108,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransactionAsync_Rollback_MySql()
+        public async Task WithTransactionAsync_Rollback()
         {
             TestDatabaseFixture.UseMySqlConnection();
             using var context = Database.CreateContext(TestDatabaseFixture.MySqlReference);
@@ -152,16 +143,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransactionAsync_IsTransactionScoped_MySql()
+        public async Task WithTransactionAsync_IsTransactionScoped()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -213,16 +201,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task WithTransactionAsync_ReuseExtensionMethods_MySql()
+        public async Task WithTransactionAsync_ReuseExtensionMethods()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -260,10 +245,7 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
     }

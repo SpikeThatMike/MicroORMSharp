@@ -6,9 +6,9 @@ namespace MicroORMSharp.Tests.MySql
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task DbPrecision_CreateInsertUpdate_MySql()
+        public async Task DbPrecision_CreateInsertUpdate()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
             var entity = new AttributeTestTable();
 
@@ -47,10 +47,7 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await entity.TableExistsAsync())
-                {
-                    await entity.DropTableAsync();
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(entity);
             }
         }
 
@@ -58,7 +55,7 @@ namespace MicroORMSharp.Tests.MySql
         [DoNotParallelize]
         public async Task DbMaxLengthExceeded_InsertAsync()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
             var entity = new AttributeTestTable
             {
                 Name = "abcdefghijklmnopqrstuvwxyz"
@@ -74,7 +71,7 @@ namespace MicroORMSharp.Tests.MySql
         [DoNotParallelize]
         public async Task DbMaxLengthExceeded_UpdateAsync()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
             var entity = new AttributeTestTable
             {
                 Id = 1,

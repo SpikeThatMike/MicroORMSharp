@@ -7,12 +7,12 @@ namespace MicroORMSharp.Tests.MySql
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task BulkInsert_MySql()
+        public async Task BulkInsert()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomerBatch();
-            await EnsureTableCreatedAsync(customers);
+            var customers = TestDatabaseFixture.CreateCustomerBatch();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
 
             try
             {
@@ -23,18 +23,18 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await AssertTableDroppedAsync(customers);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customers);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task BulkInsertAsync_MySql()
+        public async Task BulkInsertAsync()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomerBatch();
-            await EnsureTableCreatedAsync(customers);
+            var customers = TestDatabaseFixture.CreateCustomerBatch();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
 
             try
             {
@@ -45,7 +45,7 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await AssertTableDroppedAsync(customers);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customers);
             }
         }
     }

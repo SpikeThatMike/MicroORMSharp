@@ -18,7 +18,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task DbQueryMethods_UseContextConnection_MySql()
+        public async Task DbQueryMethods_UseContextConnection()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -46,16 +46,13 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task CreateContext_UsesNamedConnection_MySql()
+        public async Task CreateContext_UsesNamedConnection()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -86,10 +83,7 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                if (await context.TableExistsAsync(customer))
-                {
-                    await context.DropTableAsync(customer);
-                }
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);        
             }
         }
     }

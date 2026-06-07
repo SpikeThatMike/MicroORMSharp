@@ -18,7 +18,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task QueryAsync_MySql()
+        public async Task QueryAsync()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -45,7 +45,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task QueryAsync_UsesTransactionConnection_MySql()
+        public async Task QueryAsync_UsesTransactionConnection()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -95,7 +95,7 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task QueryAsync_UsesExplicitConnection_MySql()
+        public async Task QueryAsync_UsesExplicitConnection()
         {
             TestDatabaseFixture.UseMySqlConnection();
 

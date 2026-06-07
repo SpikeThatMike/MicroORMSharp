@@ -7,7 +7,7 @@ namespace MicroORMSharp.Tests.MySql
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task JoinQueries_MySql()
+        public async Task JoinQueries()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -20,8 +20,8 @@ namespace MicroORMSharp.Tests.MySql
 
             var orderTemplate = new TestJoinOrder();
 
-            await EnsureTableCreatedAsync(customer);
-            await EnsureTableCreatedAsync(orderTemplate);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(orderTemplate);
 
             try
             {
@@ -58,14 +58,14 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await DropTableIfExistsAsync(orderTemplate);
-                await DropTableIfExistsAsync(customer);
+                await TestDatabaseFixture.AssertTableDroppedAsync(orderTemplate);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task NestedJoinQueries_MySql()
+        public async Task NestedJoinQueries()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -77,9 +77,9 @@ namespace MicroORMSharp.Tests.MySql
             var orderTemplate = new NestedJoinOrder();
             var statusTemplate = new NestedJoinOrderStatus();
 
-            await EnsureTableCreatedAsync(customer);
-            await EnsureTableCreatedAsync(statusTemplate);
-            await EnsureTableCreatedAsync(orderTemplate);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(statusTemplate);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(orderTemplate);
 
             try
             {
@@ -130,15 +130,15 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await DropTableIfExistsAsync(orderTemplate);
-                await DropTableIfExistsAsync(statusTemplate);
-                await DropTableIfExistsAsync(customer);
+                await TestDatabaseFixture.AssertTableDroppedAsync(orderTemplate);
+                await TestDatabaseFixture.AssertTableDroppedAsync(statusTemplate);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task LeftJoinQueries_MySql()
+        public async Task LeftJoinQueries()
         {
             TestDatabaseFixture.UseMySqlConnection();
 
@@ -149,8 +149,8 @@ namespace MicroORMSharp.Tests.MySql
 
             var orderTemplate = new LeftJoinOrder();
 
-            await EnsureTableCreatedAsync(customer);
-            await EnsureTableCreatedAsync(orderTemplate);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+            await TestDatabaseFixture.EnsureTableCreatedAsync(orderTemplate);
 
             try
             {
@@ -170,8 +170,8 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await DropTableIfExistsAsync(orderTemplate);
-                await DropTableIfExistsAsync(customer);
+                await TestDatabaseFixture.AssertTableDroppedAsync(orderTemplate);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
             }
         }
     }

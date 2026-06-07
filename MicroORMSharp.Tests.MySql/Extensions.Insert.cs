@@ -6,12 +6,12 @@ namespace MicroORMSharp.Tests.MySql
     {
         [TestMethod]
         [DoNotParallelize]
-        public void Insert_MySql()
+        public void Insert()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomer();
-            EnsureTableCreated(customers);
+            var customers = TestDatabaseFixture.CreateCustomer();
+            TestDatabaseFixture.EnsureTableCreated(customers);
 
             try
             {
@@ -20,18 +20,18 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                AssertTableDropped(customers);
+                TestDatabaseFixture.AssertTableDropped(customers);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertAsync_MySql()
+        public async Task InsertAsync()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomer();
-            await EnsureTableCreatedAsync(customers);
+            var customers = TestDatabaseFixture.CreateCustomer();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
 
             try
             {
@@ -40,18 +40,18 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await AssertTableDroppedAsync(customers);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customers);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertOnly_MySql()
+        public async Task InsertOnly()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomer();
-            EnsureTableCreated(customers);
+            var customers = TestDatabaseFixture.CreateCustomer();
+            TestDatabaseFixture.EnsureTableCreated(customers);
 
             try
             {
@@ -62,18 +62,18 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                AssertTableDropped(customers);
+                TestDatabaseFixture.AssertTableDropped(customers);
             }
         }
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertOnlyAsync_MySql()
+        public async Task InsertOnlyAsync()
         {
-            UseMySqlConnection();
+            TestDatabaseFixture.UseMySqlConnection();
 
-            var customers = CreateCustomer();
-            await EnsureTableCreatedAsync(customers);
+            var customers = TestDatabaseFixture.CreateCustomer();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
 
             try
             {
@@ -84,7 +84,7 @@ namespace MicroORMSharp.Tests.MySql
             }
             finally
             {
-                await AssertTableDroppedAsync(customers);
+                await TestDatabaseFixture.AssertTableDroppedAsync(customers);
             }
         }
     }

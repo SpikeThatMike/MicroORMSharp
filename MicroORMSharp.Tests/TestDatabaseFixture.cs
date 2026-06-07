@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public static class TestDatabaseFixture
     {
@@ -112,6 +112,24 @@ namespace MicroORMSharp.Tests.MySql
             Assert.IsFalse(isDeleted, "Failed to delete table");
         }
 
+        public static void EnsureTableDropped<T>(T table) where T : IMicroORMSharp
+        {
+            var exists = table.TableExists();
+            if (exists)
+            {
+               AssertTableDropped(table);
+            }
+        }
+
+        public static void EnsureTableDropped<T>(List<T> table) where T : IMicroORMSharp
+        {
+            var exists = table.TableExists();
+            if (exists)
+            {
+                AssertTableDropped(table);
+            }
+        }
+
 
         public static async Task EnsureTableCreatedAsync<T>(T table) where T : IMicroORMSharp
         {
@@ -147,6 +165,24 @@ namespace MicroORMSharp.Tests.MySql
             await table.DropTableAsync();
             var isDeleted = await table.TableExistsAsync();
             Assert.IsFalse(isDeleted, "Failed to delete table");
+        }
+
+        public static async Task EnsureTableDroppedAsync<T>(T table) where T : IMicroORMSharp
+        {
+            var exists = await table.TableExistsAsync();
+            if (exists)
+            {
+                await AssertTableDroppedAsync(table);
+            }
+        }
+
+        public static async Task EnsureTableDroppedAsync<T>(List<T> table) where T : IMicroORMSharp
+        {
+            var exists = await table.TableExistsAsync();
+            if (exists)
+            {
+                await AssertTableDroppedAsync(table);
+            }
         }
     }
 }
