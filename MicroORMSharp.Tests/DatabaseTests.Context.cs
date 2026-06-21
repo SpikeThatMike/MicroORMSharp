@@ -1,6 +1,7 @@
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class DatabaseTests
     {

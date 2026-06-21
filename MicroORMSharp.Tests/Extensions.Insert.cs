@@ -1,14 +1,18 @@
+using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class Extensions
     {
         [TestMethod]
         [DoNotParallelize]
-        public void Insert()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void Insert(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customers);
@@ -26,9 +30,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task InsertAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
@@ -46,9 +52,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertOnly()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task InsertOnly(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customers);
@@ -68,9 +76,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task InsertOnlyAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task InsertOnlyAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);

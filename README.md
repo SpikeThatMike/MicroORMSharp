@@ -12,13 +12,11 @@ Designed to be reduce repetitive SQL and object mapping.
 | Databases | Supported |
 | --- | --- |
 | MySQL | ✅ |
-| SQL Server | ⚠ |
+| SQL Server | ✅ |
 | Others | ❌ |
 
-
-### ⚠SQL Server support⚠
-> SQL Server integration has not been tested and may have unwanted side effects, unexpected behavior, or SQL server specific issues. If you want top use SQL Server, use in a development environment to identify any issues beforehand.
-> The reason behind this, is I use a locally hosted MySQL for my projects and do not currently have access to a SQL server database
+### ⚠Other support⚠
+> Please create a issue / PR for other versions of SQL, currently only MySql & SQL Server are supported
 
 ### Supported versions
 | Version | Supported .NET versions |

@@ -1,15 +1,19 @@
+using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class Extensions
     {
         [TestMethod]
         [DoNotParallelize]
-        public async Task BulkInsert()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task BulkInsert(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomerBatch();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);
@@ -29,9 +33,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task BulkInsertAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task BulkInsertAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomerBatch();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);

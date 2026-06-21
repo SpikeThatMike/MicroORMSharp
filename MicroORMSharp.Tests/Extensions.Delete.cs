@@ -1,15 +1,19 @@
+using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class Extensions
     {
         [TestMethod]
         [DoNotParallelize]
-        public void DeleteRow()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void DeleteRow(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customers);
@@ -32,9 +36,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task DeleteRowAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task DeleteRowAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);

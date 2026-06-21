@@ -1,14 +1,18 @@
+using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class Extensions
     {
         [TestMethod]
         [DoNotParallelize]
-        public void CreateAndDeleteTable()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void CreateAndDeleteTable(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = new Customers();
 
@@ -28,9 +32,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task CreateAndDeleteTableAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task CreateAndDeleteTableAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = new Customers();
 
@@ -50,9 +56,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public void TruncateTable()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void TruncateTable(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customers);
@@ -75,9 +83,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task TruncateTableAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task TruncateTableAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customers = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customers);

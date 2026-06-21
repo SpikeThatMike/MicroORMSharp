@@ -1,15 +1,18 @@
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class Extensions
     {
         [TestMethod]
         [DoNotParallelize]
-        public void Update()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void Update(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customer);
@@ -47,9 +50,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task UpdateAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task UpdateAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
@@ -87,9 +92,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public void UpdateOnly()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void UpdateOnly(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customer);
@@ -123,9 +130,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task UpdateOnlyAsync()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task UpdateOnlyAsync(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
@@ -160,9 +169,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public void Update_SelectColumns()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void Update_SelectColumns(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customer);
@@ -200,9 +211,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task UpdateAsync_SelectColumns()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task UpdateAsync_SelectColumns(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
@@ -240,9 +253,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public void UpdateOnly_SelectColumns()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public void UpdateOnly_SelectColumns(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             TestDatabaseFixture.EnsureTableCreated(customer);
@@ -276,9 +291,11 @@ namespace MicroORMSharp.Tests.MySql
 
         [TestMethod]
         [DoNotParallelize]
-        public async Task UpdateOnlyAsync_SelectColumns()
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task UpdateOnlyAsync_SelectColumns(DatabaseType databaseType)
         {
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.UseConnection(databaseType);
 
             var customer = TestDatabaseFixture.CreateCustomer();
             await TestDatabaseFixture.EnsureTableCreatedAsync(customer);

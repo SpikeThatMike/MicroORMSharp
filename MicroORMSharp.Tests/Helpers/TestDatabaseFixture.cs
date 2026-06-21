@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
 
-namespace MicroORMSharp.Tests
+namespace MicroORMSharp.Tests.Helpers
 {
     public static class TestDatabaseFixture
     {
@@ -48,6 +48,21 @@ namespace MicroORMSharp.Tests
         public static void UseSqlServerConnection()
         {
             Database.SetConnectionString(SqlServerReference);
+        }
+
+        public static void UseConnection(DatabaseType databaseType)
+        {
+            switch (databaseType)
+            {
+                case DatabaseType.MySql:
+                    UseMySqlConnection();
+                    break;
+                case DatabaseType.SqlServer:
+                    UseSqlServerConnection();
+                    break;
+                default:
+                    throw new ArgumentException($"Unsupported database type: {databaseType}");
+            }
         }
 
         public static Customers CreateCustomer(string suffix = "")

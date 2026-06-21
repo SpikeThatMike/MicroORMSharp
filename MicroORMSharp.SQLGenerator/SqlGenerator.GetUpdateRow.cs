@@ -64,10 +64,17 @@ namespace MicroORMSharp.SqlGenerator
                     continue;
                 }
 
+                var value = prop.GetValue(obj);
+                if (value == null)
+                {
+                    updateColumns.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = NULL");
+                    continue;
+                }
+
                 var parameter = $"@p{++count}";
 
                 updateColumns.Add($"{AddBrackets(TableName)}.{AddBrackets(GetPropertyName(prop))} = {parameter}");
-                newQuery.Parameters.Add(parameter, prop.GetValue(obj));
+                newQuery.Parameters.Add(parameter, value);
             }
 
             newQuery.Query.Append($"UPDATE {GetFullTableName()} SET {string.Join(", ", updateColumns)} ");

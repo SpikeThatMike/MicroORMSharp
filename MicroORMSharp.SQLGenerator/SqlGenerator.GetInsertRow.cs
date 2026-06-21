@@ -29,9 +29,16 @@ namespace MicroORMSharp.SqlGenerator
                     continue;
                 }
 
+                var value = prop.GetValue(obj);
+                if (value == null)
+                {
+                    values.Add("NULL");
+                    continue;
+                }
+
                 var parameterName = $"@p{++count}";
                 values.Add(parameterName);
-                newQuery.Parameters.Add(parameterName, prop.GetValue(obj));
+                newQuery.Parameters.Add(parameterName, value);
             }
 
             var identityProp = IdentityProperties.FirstOrDefault()

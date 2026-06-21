@@ -43,13 +43,11 @@ namespace MicroORMSharp.SqlGenerator.Tests
 
             AssertQuery(
                 sqlQuery,
-                "INSERT INTO [dbo].[AttributeTestTable] (Name, Amount, Quantity, IsEnabled, Payload) VALUES (DEFAULT, DEFAULT, DEFAULT, DEFAULT, @p1); SELECT [AttributeTestTable].[Id] AS [Id], [AttributeTestTable].[Name] AS [Name], [AttributeTestTable].[Amount] AS [Amount], [AttributeTestTable].[Quantity] AS [Quantity], [AttributeTestTable].[IsEnabled] AS [IsEnabled], [AttributeTestTable].[Payload] AS [Payload] FROM [dbo].[AttributeTestTable] WHERE [AttributeTestTable].[Id] = (SELECT SCOPE_IDENTITY());",
+                "INSERT INTO [dbo].[AttributeTestTable] (Name, Amount, Quantity, IsEnabled, Payload) VALUES (DEFAULT, DEFAULT, DEFAULT, DEFAULT, NULL); SELECT [AttributeTestTable].[Id] AS [Id], [AttributeTestTable].[Name] AS [Name], [AttributeTestTable].[Amount] AS [Amount], [AttributeTestTable].[Quantity] AS [Quantity], [AttributeTestTable].[IsEnabled] AS [IsEnabled], [AttributeTestTable].[Payload] AS [Payload] FROM [dbo].[AttributeTestTable] WHERE [AttributeTestTable].[Id] = (SELECT SCOPE_IDENTITY());",
                 "Configured entity insert query does not match"
             );
 
-            Assert.AreEqual(1, sqlQuery.Parameters.Count);
-            Assert.IsTrue(sqlQuery.Parameters.ContainsKey("@p1"));
-            Assert.IsNull(sqlQuery.Parameters["@p1"]);
+            Assert.AreEqual(0, sqlQuery.Parameters.Count);
         }
 
         [TestMethod]
@@ -60,13 +58,12 @@ namespace MicroORMSharp.SqlGenerator.Tests
 
             AssertQuery(
                 sqlQuery,
-                "UPDATE `AttributeTestTable` SET `AttributeTestTable`.`Name` = DEFAULT, `AttributeTestTable`.`Amount` = DEFAULT, `AttributeTestTable`.`Quantity` = DEFAULT, `AttributeTestTable`.`IsEnabled` = DEFAULT, `AttributeTestTable`.`Payload` = @p2 WHERE `AttributeTestTable`.`Id` = @p1;",
+                "UPDATE `AttributeTestTable` SET `AttributeTestTable`.`Name` = DEFAULT, `AttributeTestTable`.`Amount` = DEFAULT, `AttributeTestTable`.`Quantity` = DEFAULT, `AttributeTestTable`.`IsEnabled` = DEFAULT, `AttributeTestTable`.`Payload` = NULL WHERE `AttributeTestTable`.`Id` = @p1;",
                 "Configured entity update query does not match"
             );
 
-            Assert.AreEqual(2, sqlQuery.Parameters.Count);
+            Assert.AreEqual(1, sqlQuery.Parameters.Count);
             Assert.AreEqual(10L, sqlQuery.Parameters["@p1"]);
-            Assert.IsNull(sqlQuery.Parameters["@p2"]);
         }
 
         [TestMethod]

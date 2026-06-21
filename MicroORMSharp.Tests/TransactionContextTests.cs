@@ -1,4 +1,4 @@
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     [TestClass]
     public sealed class TransactionContextTests

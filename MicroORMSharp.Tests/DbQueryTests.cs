@@ -58,7 +58,7 @@ namespace MicroORMSharp.Tests
                 .Select(x =>
                 {
                     var expression = (MemberExpression)x.Key.Body;
-                    var name =  ((PropertyInfo)expression.Member).GetCustomAttribute<DbColumn>()?.Name ?? ((PropertyInfo)expression.Member).Name;
+                    var name = ((PropertyInfo)expression.Member).GetCustomAttribute<DbColumn>()?.Name ?? ((PropertyInfo)expression.Member).Name;
                     return new KeyValuePair<string, bool>(name, x.Value);
                 })
                 .ToList();
@@ -81,136 +81,12 @@ namespace MicroORMSharp.Tests
         }
 
         [TestMethod]
-        [DoNotParallelize]
-        public void DbQuery_SelectTo_Columns_MySql()
-        {
-            SqlGeneratorCache.Initialise();
-
-            var projectedQuery = new DbQuery<Customers>()
-                .SelectTo(x => new CustomerName { Name = x.Forename + " " + x.Surname });
-
-            string sql = projectedQuery.Query.GetSqlQuery(DatabaseType.MySql);
-
-            Assert.AreEqual(
-                "SELECT `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname` FROM `Customers`",
-                sql,
-                "SelectTo should only query the specified columns"
-            );
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public void DbQuery_GetSql_GetParameters_MySql()
-        {
-            SqlGeneratorCache.Initialise();
-
-            bool active = false;
-            var query = new DbQuery<Customers>()
-                .Where(x => x.Active == active && x.AddressLine1 == "Test Street")
-                .OrderBy(x => x.Forename)
-                .ThenByDescending(x => x.Surname);
-            
-            string sql = query.GetSqlQuery(DatabaseType.MySql);
-
-            Assert.AreEqual(
-                "SELECT `Customers`.`Id` AS `Id`, `Customers`.`Forename` AS `Forename`, `Customers`.`Surname` AS `Surname`, `Customers`.`AddressLine1` AS `AddressLine1`, `Customers`.`AddressLine2` AS `AddressLine2`, `Customers`.`AddressLine3` AS `AddressLine3`, `Customers`.`AddressLine4` AS `AddressLine4`, `Customers`.`Postalcode` AS `Postcode`, `Customers`.`Nullable` AS `Nullable`, `Customers`.`NotNullable` AS `NotNullable`, `Customers`.`Active` AS `Active` FROM `Customers` WHERE ((`Customers`.`Active` = @p1) AND (`Customers`.`AddressLine1` = @p2)) ORDER BY `Customers`.`Forename` ASC, `Customers`.`Surname` DESC",
-                sql,
-                "Incorrect SQL generated from select query"
-            );
-
-            var parameters = query.GetSqlParameters();
-            var expectedParameters = new Dictionary<string, object>
-            {
-                { "p1", false },
-                { "p2", "Test Street" }
-            };
-            Assert.IsTrue(
-                expectedParameters.Count == parameters.Count
-                && expectedParameters.Keys.All(key => parameters.ContainsKey(key) && expectedParameters[key].ToString().Equals(parameters[key].ToString())),
-                "Incorrect order by inside select query"
-            );
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public void DbQuery_GetSql_GetParameters_SqlServer()
-        {
-            SqlGeneratorCache.Initialise();
-
-            bool active = true;
-            var query = new DbQuery<Customers>()
-                .Where(x => x.Active == active && x.AddressLine1 == "Test Street")
-                .OrderBy(x => x.Forename)
-                .ThenByDescending(x => x.Surname);
-
-            string sql = query.GetSqlQuery(DatabaseType.SqlServer);
-
-            Assert.AreEqual(
-                "SELECT [Customers].[Id] AS [Id], [Customers].[Forename] AS [Forename], [Customers].[Surname] AS [Surname], [Customers].[AddressLine1] AS [AddressLine1], [Customers].[AddressLine2] AS [AddressLine2], [Customers].[AddressLine3] AS [AddressLine3], [Customers].[AddressLine4] AS [AddressLine4], [Customers].[Postalcode] AS [Postcode], [Customers].[Nullable] AS [Nullable], [Customers].[NotNullable] AS [NotNullable], [Customers].[Active] AS [Active] FROM [dbo].[Customers] WHERE (([Customers].[Active] = @p1) AND ([Customers].[AddressLine1] = @p2)) ORDER BY [Customers].[Forename] ASC, [Customers].[Surname] DESC",
-                sql,
-                "Incorrect SQL generated from select query"
-            );
-
-            var parameters = query.GetSqlParameters();
-            var expectedParameters = new Dictionary<string, object>
-            {
-                { "p1", true },
-                { "p2", "Test Street" }
-            };
-            Assert.IsTrue(
-                expectedParameters.Count == parameters.Count
-                && expectedParameters.Keys.All(key => parameters.ContainsKey(key) && expectedParameters[key].ToString().Equals(parameters[key].ToString())),
-                "Incorrect order by inside select query"
-            );
-        }
-
-        [TestMethod]
         public void DbQuery_SetPagination_SetValues()
         {
             var query = new DbQuery<Customers>().SetPagination(pageNumber: 2, pageSize: 10);
 
             Assert.AreEqual(10, query._take, "Incorrect page size");
             Assert.AreEqual(10, query._offset, "Incorrect offset");
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public void DbQuery_GetSql_Pagination_MySql()
-        {
-            SqlGeneratorCache.Initialise();
-
-            var query = new DbQuery<Customers>()
-                .Select(x => x.Forename)
-                .OrderBy(x => x.Forename)
-                .SetPagination(pageNumber: 2, pageSize: 10);
-
-            string sql = query.GetSqlQuery(DatabaseType.MySql);
-
-            Assert.AreEqual(
-                "SELECT `Customers`.`Forename` AS `Forename` FROM `Customers` ORDER BY `Customers`.`Forename` ASC LIMIT 10 OFFSET 10",
-                sql,
-                "Incorrect paginated query"
-            );
-        }
-
-        [TestMethod]
-        [DoNotParallelize]
-        public void DbQuery_GetSql_Pagination_SqlServer()
-        {
-            SqlGeneratorCache.Initialise();
-
-            var query = new DbQuery<Customers>()
-                .Select(x => x.Forename)
-                .OrderBy(x => x.Forename)
-                .SetPagination(pageNumber: 2, pageSize: 10);
-
-            string sql = query.GetSqlQuery(DatabaseType.SqlServer);
-
-            Assert.AreEqual(
-                "SELECT [Customers].[Forename] AS [Forename] FROM [dbo].[Customers] ORDER BY [Customers].[Forename] ASC OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY",
-                sql,
-                "Incorrect paginated query"
-            );
         }
     }
 }

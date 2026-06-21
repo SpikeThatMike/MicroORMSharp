@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MicroORMSharp.SqlGenerator;
+using MicroORMSharp.Tests.Helpers;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     public partial class DatabaseTests
     {

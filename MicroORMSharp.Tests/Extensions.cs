@@ -1,7 +1,8 @@
 using MicroORMSharp.SqlGenerator;
 using MicroORMSharp.SqlGenerator.Interfaces;
+using MicroORMSharp.Tests.Helpers;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests
 {
     [TestClass]
     public partial class Extensions
@@ -11,6 +12,7 @@ namespace MicroORMSharp.Tests.MySql
         {
             Database.Initialise();
             TestDatabaseFixture.EnsureMySqlConnection();
+            TestDatabaseFixture.EnsureSqlServerConnection();
         }
     }
 }

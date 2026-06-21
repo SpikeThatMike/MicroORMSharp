@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MicroORMSharp.Tests.MySql
+namespace MicroORMSharp.Tests.SqlServer
 {
     [TestClass]
     public sealed class DapperWrapperTests
@@ -14,8 +14,8 @@ namespace MicroORMSharp.Tests.MySql
         public static void ClassInitialize(TestContext context)
         {
             Database.Initialise();
-            TestDatabaseFixture.EnsureMySqlConnection();
-            TestDatabaseFixture.UseMySqlConnection();
+            TestDatabaseFixture.EnsureSqlServerConnection();
+            TestDatabaseFixture.UseSqlServerConnection();
         }
 
         [TestMethod]
@@ -31,7 +31,7 @@ namespace MicroORMSharp.Tests.MySql
                 Assert.IsTrue(customer.Id > 0, "Failed to retrieve data from insert");
 
                 var results = await Database.Dapper.QueryAsync<string>(
-                    $"SELECT `Forename` FROM {Helper.GetTableName<Customers>()};"
+                    $"SELECT [Forename] FROM {Helper.GetTableName<Customers>(DatabaseType.SqlServer)};"
                 );
 
                 Assert.AreEqual(1, results.Count(), "Incorrect result count");
@@ -57,8 +57,8 @@ namespace MicroORMSharp.Tests.MySql
             try
             {
                 await Database.Dapper.ExecuteAsync(
-                    $"INSERT INTO {Helper.GetTableName<Customers>()} (`Forename`, `Surname`, `AddressLine1`, `AddressLine2`, `AddressLine3`, `AddressLine4`, `Postalcode`, `Nullable`, `NotNullable`, `Active`) " +
-                    "VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Nullable, @NotNullable, @Active);",
+                    @$"INSERT INTO {Helper.GetTableName<Customers>(DatabaseType.SqlServer)} ([Forename], [Surname], [AddressLine1], [AddressLine2], [AddressLine3], [AddressLine4], [Postalcode], [Nullable], [NotNullable], [Active]) 
+                    VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Nullable, @NotNullable, @Active);",
                     customer,
                     transaction: transaction
                 );
@@ -69,7 +69,7 @@ namespace MicroORMSharp.Tests.MySql
                 );
 
                 var countInTransaction = await Database.Dapper.QuerySingleAsync<int>(
-                    $"SELECT COUNT(*) FROM {Helper.GetTableName<Customers>()} WHERE `Id` = @Id;",
+                    $"SELECT COUNT(*) FROM {Helper.GetTableName<Customers>(DatabaseType.SqlServer)} WHERE [Id] = @Id;",
                     new { customer.Id },
                     transaction: transaction
                 );
@@ -104,14 +104,14 @@ namespace MicroORMSharp.Tests.MySql
             try
             {
                 await Database.Dapper.ExecuteAsync(
-                    $"INSERT INTO {Helper.GetTableName<Customers>()} (`Forename`, `Surname`, `AddressLine1`, `AddressLine2`, `AddressLine3`, `AddressLine4`, `Postalcode`, `Nullable`, `NotNullable`, `Active`) " +
-                    "VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Nullable, @NotNullable, @Active);",
+                    @$"INSERT INTO {Helper.GetTableName<Customers>(DatabaseType.SqlServer)} ([Forename], [Surname], [AddressLine1], [AddressLine2], [AddressLine3], [AddressLine4], [Postalcode], [Nullable], [NotNullable], [Active])
+                    VALUES (@Forename, @Surname, @AddressLine1, @AddressLine2, @AddressLine3, @AddressLine4, @Postcode, @Nullable, @NotNullable, @Active);",
                     customer,
                     connection: connection
                 );
 
                 var count = await Database.Dapper.QuerySingleAsync<int>(
-                    $"SELECT COUNT(*) FROM {Helper.GetTableName<Customers>()};",
+                    $"SELECT COUNT(*) FROM {Helper.GetTableName<Customers>(DatabaseType.SqlServer)};",
                     connection: connection
                 );
 
