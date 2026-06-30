@@ -14,8 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MicroORMSharp.SQLGenerator\MicroORMSharp.SqlGenerator.csproj" />
-    <ProjectReference Include="..\MicroORMSharp\MicroORMSharp.csproj" />
+    <ProjectReference Include="..\MicroORMSharp.Tests\MicroORMSharp.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

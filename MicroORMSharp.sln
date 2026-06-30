@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp", "MicroORMSharp\MicroORMSharp.csproj", "{D1E350A2-DE8D-40AF-9EFA-CCDD58D3803D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp", "src\MicroORMSharp\MicroORMSharp.csproj", "{D1E350A2-DE8D-40AF-9EFA-CCDD58D3803D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator", "MicroORMSharp.SQLGenerator\MicroORMSharp.SqlGenerator.csproj", "{EABAF450-AA1C-41C8-81CA-27FA5C2CA410}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator", "src\MicroORMSharp.SQLGenerator\MicroORMSharp.SqlGenerator.csproj", "{EABAF450-AA1C-41C8-81CA-27FA5C2CA410}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator.Tests", "MicroORMSharp.SQLGenerator.Tests\MicroORMSharp.SqlGenerator.Tests.csproj", "{F7238353-484C-4220-BA51-1D1E16C61EF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.SqlGenerator.Tests", "tests\MicroORMSharp.SQLGenerator.Tests\MicroORMSharp.SqlGenerator.Tests.csproj", "{F7238353-484C-4220-BA51-1D1E16C61EF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql", "MicroORMSharp.Tests.MySql\MicroORMSharp.Tests.MySql.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.MySql", "tests\MicroORMSharp.Tests.MySql\MicroORMSharp.Tests.MySql.csproj", "{145ACAA6-4DB5-4E61-BBF9-5D1039AA0B45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.SqlServer", "MicroORMSharp.Tests.SqlServer\MicroORMSharp.Tests.SqlServer.csproj", "{7A292180-26D1-40FE-8636-76DA70971F82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests.SqlServer", "tests\MicroORMSharp.Tests.SqlServer\MicroORMSharp.Tests.SqlServer.csproj", "{7A292180-26D1-40FE-8636-76DA70971F82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests", "MicroORMSharp.Tests\MicroORMSharp.Tests.csproj", "{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroORMSharp.Tests", "tests\MicroORMSharp.Tests\MicroORMSharp.Tests.csproj", "{0DBCDC7A-B590-49C7-BC0C-B3431C51E19B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
