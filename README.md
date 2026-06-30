@@ -36,6 +36,9 @@ It is designed for developers who:
 - Want simple transaction and connection management
 - Do not require change tracking or migrations
 
+
+***⚠ Still early in development, verify results in a test environment before using in production ⚠***
+
 ## Quick Example
 ```csharp
 var customers = await Database.Query<Customer>()
@@ -205,6 +208,16 @@ var activeCustomerCount = await Database.Query<Customer>()
     .Where(x => x.Active)
     .CountAsync();
 ```
+
+Supported Methods inside of Where clause for SQL properties
+- string.Contains - `%LIKE%`
+- string.StartsWith - `LIKE%`
+- string.EndsWith - `%LIKE`
+- string.Equals - `=`
+- string.Trim - `TRIM()`
+- string.TrimStart - `LTRIM()`
+- string.TrimEnd - `RTRIM()`
+- IEnumerable.Contains - `IN`
 
 ### Using a context
 Use `Database.CreateContext(...)` when you want a scoped connection and database type for several operations without changing the global connection.

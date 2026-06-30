@@ -242,6 +242,7 @@ namespace MicroORMSharp.SqlGenerator
         private SqlQuery MethodCallExpressionExtract(ref int i, MethodCallExpression expression)
         {
             bool IsStringMethod(MethodInfo method, string name) => method == typeof(string).GetMethod(name, new[] { typeof(string) });
+            bool IsParameterlessStringMethod(MethodInfo method, string name) => method == typeof(string).GetMethod(name, Type.EmptyTypes);
 
             if (IsStringMethod(expression.Method, "Contains"))
             {
@@ -279,6 +280,21 @@ namespace MicroORMSharp.SqlGenerator
                 );
             }
 
+            if (expression.Object != null && IsParameterlessStringMethod(expression.Method, "Trim"))
+            {
+                return StringFunctionExpressionExtract(ref i, expression.Object, "TRIM");
+            }
+
+            if (expression.Object != null && IsParameterlessStringMethod(expression.Method, "TrimStart"))
+            {
+                return StringFunctionExpressionExtract(ref i, expression.Object, "LTRIM");
+            }
+
+            if (expression.Object != null && IsParameterlessStringMethod(expression.Method, "TrimEnd"))
+            {
+                return StringFunctionExpressionExtract(ref i, expression.Object, "RTRIM");
+            }
+
             if (expression.Method.Name == "Contains")
             {
                 Expression collection;
@@ -308,6 +324,12 @@ namespace MicroORMSharp.SqlGenerator
             }
 
             throw new Exception("Unsupported method call: " + expression.Method.Name);
+        }
+
+        private SqlQuery StringFunctionExpressionExtract(ref int i, Expression expression, string functionName)
+        {
+            var value = ParseExpression(ref i, expression);
+            return new SqlQuery($"{functionName}({value})", value.Parameters);
         }
 
         private SqlQuery MemberExpressionExtract(ref int i, MemberExpression expression, bool isUnary,

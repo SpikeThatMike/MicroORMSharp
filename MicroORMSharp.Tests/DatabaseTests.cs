@@ -273,5 +273,49 @@ namespace MicroORMSharp.Tests
                 await TestDatabaseFixture.AssertTableDroppedAsync(customers);
             }
         }
+
+        [TestMethod]
+        [DoNotParallelize]
+        [DataRow(DatabaseType.MySql)]
+        [DataRow(DatabaseType.SqlServer)]
+        public async Task Query_TrimMethods(DatabaseType databaseType)
+        {
+            TestDatabaseFixture.UseConnection(databaseType);
+
+            var customer = TestDatabaseFixture.CreateCustomer();
+            await TestDatabaseFixture.EnsureTableCreatedAsync(customer);
+            var expectedForename = $"Trimmed";
+            var startSpace = "   ";
+            var endSpace = "  ";
+            customer.Forename = startSpace + expectedForename + endSpace;
+
+            try
+            {
+                customer = await customer.InsertAsync();
+
+                var trimResult = await Database.Query<Customers>()
+                    .Where(x => x.Forename.Trim() == expectedForename)
+                    .ExecuteSingleAsync();
+
+                var trimStartResult = await Database.Query<Customers>()
+                    .Where(x => x.Forename.TrimStart() == expectedForename + endSpace)
+                    .ExecuteSingleAsync();
+
+                var trimEndResult = await Database.Query<Customers>()
+                    .Where(x => x.Forename.TrimEnd() == startSpace + expectedForename)
+                    .ExecuteSingleAsync();
+
+                Assert.IsNotNull(trimResult, "Trim query did not return a row");
+                Assert.IsNotNull(trimStartResult, "TrimStart query did not return a row");
+                Assert.IsNotNull(trimEndResult, "TrimEnd query did not return a row");
+                Assert.AreEqual(customer.Id, trimResult.Id, "Trim query returned the wrong customer");
+                Assert.AreEqual(customer.Id, trimStartResult.Id, "TrimStart query returned the wrong customer");
+                Assert.AreEqual(customer.Id, trimEndResult.Id, "TrimEnd query returned the wrong customer");
+            }
+            finally
+            {
+                await TestDatabaseFixture.AssertTableDroppedAsync(customer);
+            }
+        }
     }
 }
