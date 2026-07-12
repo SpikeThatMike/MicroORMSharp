@@ -1,27 +1,85 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
-
-@* Needed for dialogs *@
 <MudDialogProvider />
-
-@* Needed for snackbars *@
 <MudSnackbarProvider />
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div>
+    <MudLayout Class="docs-layout">
+        <MudAppBar Elevation="0" Dense="true" Class="docs-appbar">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                           Color="Color.Inherit"
+                           Edge="Edge.Start"
+                           OnClick="ToggleDrawer"
+                           Class="docs-menu-button" />
+            <MudLink Href="" Color="Color.Inherit" Underline="Underline.None" Class="docs-brand">
+                <span class="docs-brand-mark">M</span>
+                <span>MicroORMSharp</span>
+            </MudLink>
+            <MudSpacer />
+            <MudButton Href="https://www.nuget.org/packages/MicroORMSharp"
+                       Target="_blank"
+                       Variant="Variant.Text"
+                       Color="Color.Inherit"
+                       EndIcon="@Icons.Material.Filled.OpenInNew"
+                       Class="docs-nuget-button">
+                NuGet
+            </MudButton>
+            <MudButton Href="https://github.com/SpikeThatMike/MicroORMSharp"
+                       Target="_blank"
+                       Variant="Variant.Outlined"
+                       Color="Color.Inherit"
+                       EndIcon="@Icons.Material.Filled.OpenInNew"
+                       Class="docs-github-button">
+                GitHub
+            </MudButton>
+        </MudAppBar>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        <MudDrawer @bind-Open="_drawerOpen"
+                   Variant="DrawerVariant.Responsive"
+                   Elevation="0"
+                   Class="docs-drawer">
+            <MudDrawerHeader Class="docs-drawer-header">
+                <div>
+                    <MudText Typo="Typo.subtitle1">Documentation</MudText>
+                </div>
+            </MudDrawerHeader>
+            <NavMenu />
+        </MudDrawer>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <MudMainContent Class="docs-main">
+            <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="docs-content">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
 </div>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#23617f",
+            Secondary = "#c84f3a",
+            Tertiary = "#537d5d",
+            Background = "#f7f8fa",
+            Surface = "#ffffff",
+            AppbarBackground = "#183446",
+            AppbarText = "#ffffff",
+            DrawerBackground = "#ffffff",
+            DrawerText = "#27343d",
+            TextPrimary = "#18242c",
+            TextSecondary = "#5d6973",
+            Divider = "#dce3e8"
+        }
+    };
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

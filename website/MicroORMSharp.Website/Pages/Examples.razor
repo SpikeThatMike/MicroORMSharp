@@ -1,0 +1,84 @@
+@page "/examples"
+
+<PageTitle>Examples - MicroORMSharp</PageTitle>
+
+<section class="docs-page-header">
+    <MudText Typo="Typo.h3" HtmlTag="h1">Examples</MudText>
+    <MudText Typo="Typo.body1" Class="docs-intro">
+        Collection of MicroORMSharp examples for you to use in your own code & learn from
+    </MudText>
+</section>
+
+<MudPaper Elevation="0" Class="examples-toolbar">
+    <MudTextField @bind-Value="_search"
+                  Immediate="true"
+                  Label="Search examples"
+                  Variant="Variant.Outlined"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Clearable="true"
+                  Margin="Margin.Dense" />
+    <MudSelect T="string"
+               @bind-Value="_selectedCategory"
+               Label="Category"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Dense="true">
+        @foreach (var category in DocumentationExamples.Categories)
+        {
+            <MudSelectItem T="string" Value="@category">@category</MudSelectItem>
+        }
+    </MudSelect>
+    <MudButton Variant="Variant.Text"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.RestartAlt"
+               OnClick="ResetFilters">
+        Reset
+    </MudButton>
+</MudPaper>
+
+<div class="examples-count">
+    <MudText Typo="Typo.body2" Class="sub-text">@FilteredExamples.Count() examples</MudText>
+</div>
+
+<div class="example-list">
+    @foreach (var example in FilteredExamples)
+    {
+        <ExampleCard Example="example" />
+    }
+</div>
+
+@code {
+    private string _search = string.Empty;
+    private string _selectedCategory = DocumentationExamples.AllCategories;
+
+    private IEnumerable<DocumentationExample> FilteredExamples =>
+        DocumentationExamples.All.Where(example =>
+            MatchesCategory(example) &&
+            MatchesSearch(example));
+
+    private bool MatchesCategory(DocumentationExample example)
+    {
+        return _selectedCategory == DocumentationExamples.AllCategories ||
+            example.Category == _selectedCategory;
+    }
+
+    private bool MatchesSearch(DocumentationExample example)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return example.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            example.Summary.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            example.Category.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            example.Code.Contains(_search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ResetFilters()
+    {
+        _search = string.Empty;
+        _selectedCategory = DocumentationExamples.AllCategories;
+    }
+}

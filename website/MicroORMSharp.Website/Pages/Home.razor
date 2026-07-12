@@ -1,7 +1,91 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>MicroORMSharp documentation</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="docs-hero">
+    <div class="docs-hero-copy">
+        <div class="docs-tech-chips">
+            <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">
+                .NET Standard 2.1
+            </MudChip>
+            <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">
+                Dapper.NET
+            </MudChip>
+        </div>
+        <MudText Typo="Typo.h3" HtmlTag="h1">MicroORMSharp</MudText>
+        <MudText Typo="Typo.body1" Class="docs-intro">
+            A lightweight .NET ORM which adds Entity-based CRUD operations, bulk insert,
+            LINQ-style query builder, joins, transaction scopes
+        </MudText>
+        <div class="docs-action-row">
+            <MudButton Href="getting-started"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.RocketLaunch">
+                Get started
+            </MudButton>
+            <MudButton Href="examples"
+                       Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Code">
+                Browse examples
+            </MudButton>
+        </div>
+    </div>
+    <CodeBlock Title="Quick example" Code="@QuickExample" />
+</section>
 
-Welcome to your new app.
+<section class="docs-section">
+    <div class="docs-section-heading">
+        <MudText Typo="Typo.h4" HtmlTag="h2">Features</MudText>
+        <MudText Typo="Typo.body1" Class="sub-text">
+            What MicroORMSharp offers.
+        </MudText>
+    </div>
+
+    <div class="feature-grid">
+        @foreach (var item in ShowcaseItems.Items)
+        {
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudIcon Icon="@item.Icon" Color="@item.Color" Size="Size.Large" />
+                <MudText Typo="Typo.h6" HtmlTag="h3">@item.Title</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">@item.Body</MudText>
+            </MudPaper>
+        }
+    </div>
+</section>
+
+<section class="docs-section split-section">
+    <div>
+        <MudText Typo="Typo.h4" HtmlTag="h2">Supported</MudText>
+        <MudText Typo="Typo.body1" Class="sub-text">
+            Supported databases and .NET versions
+        </MudText>
+    </div>
+
+    <MudPaper Elevation="0" Class="support-panel">
+        <div class="support-row">
+            <span>Databases</span>
+            <strong>MySQL and SQL Server</strong>
+        </div>
+        <div class="support-row">
+            <span>Target</span>
+            <strong>.NET Standard 2.1</strong>
+        </div>
+    </MudPaper>
+</section>
+
+@code {
+    private static readonly string QuickExample = """"  
+        var customers = await Database.Query<Customer>()
+            .Where(x => x.Active)
+            .OrderBy(x => x.Id)
+            .ExecuteAsync();
+
+        var customer = await new Customer
+        {
+            Forename = "John",
+            Surname = "Doe"
+        }.InsertAsync();
+    """";
+}

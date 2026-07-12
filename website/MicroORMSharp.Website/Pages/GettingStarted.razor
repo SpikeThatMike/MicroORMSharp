@@ -1,0 +1,153 @@
+@page "/getting-started"
+
+<PageTitle>Getting started - MicroORMSharp</PageTitle>
+
+<section class="docs-page-header">
+    <MudText Typo="Typo.h3" HtmlTag="h1">Getting started</MudText>
+    <MudText Typo="Typo.body1" Class="docs-intro">
+        Install the package, register a connection, map a model, then query and write rows with the high-level APIs.
+    </MudText>
+</section>
+
+<MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="docs-alert">
+    MicroORMSharp is early in development. Validate generated SQL and data behavior in your own test environment before production use.
+</MudAlert>
+
+<section class="docs-section">
+    <div class="timeline">
+        <MudPaper Elevation="0" Class="gettingstarted-step">
+            <span class="step-number">1</span>
+            <div>
+                <MudText Typo="Typo.h5" HtmlTag="h2">Install</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">Add the package to your application project.</MudText>
+                <CodeBlock Language="bash" Code="dotnet add package MicroORMSharp" />
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Class="gettingstarted-step">
+            <span class="step-number">2</span>
+            <div>
+                <MudText Typo="Typo.h5" HtmlTag="h2">Register a connection</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">
+                    Register one or more connections at application startup. The first connection becomes the default.
+                </MudText>
+                <CodeBlock Code="@ConnectionCode" />
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Class="gettingstarted-step">
+            <span class="step-number">3</span>
+            <div>
+                <MudText Typo="Typo.h5" HtmlTag="h2">Create a mapped model</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">
+                    Implement IMicroORMSharp and use attributes where the database shape needs extra metadata.
+                </MudText>
+                <CodeBlock Code="@ModelCode" />
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Class="gettingstarted-step">
+            <span class="step-number">4</span>
+            <div>
+                <MudText Typo="Typo.h5" HtmlTag="h2">Query data</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">
+                    Querying data with the default connection and context connection.
+                </MudText>
+                <CodeBlock Code="@QueryCode" />
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Class="gettingstarted-step">
+            <span class="step-number">5</span>
+            <div>
+                <MudText Typo="Typo.h5" HtmlTag="h2">Insert, Update & Delete</MudText>
+                <MudText Typo="Typo.body2" Class="sub-text">
+                    CRUD operations with default connection and context connection.
+                </MudText>
+                <CodeBlock Code="@CrudCode" />
+            </div>
+        </MudPaper>
+    </div>
+</section>
+
+<section class="docs-section split-section">
+    <div>
+        <MudText Typo="Typo.h4" HtmlTag="h2">When to use database context</MudText>
+        <MudText Typo="Typo.body1" Class="sub-text">
+            Use Database.CreateContext when you are using multiple connections and want to use a different connection from the default one without changing it or if you want to execute all of your queries under one connection instead of creating a new connection for each one.
+        </MudText>
+    </div>
+    <CodeBlock Code="@ContextCode" Title="Scoped connection example" />
+</section>
+
+@code {
+    private static readonly string ConnectionCode = """"
+        using MicroORMSharp;
+        using MicroORMSharp.SqlGenerator;
+
+        Database.AddConnectionString(
+            DatabaseType.SqlServer,
+            reference: "PrimarySqlServer",
+            sqlConnection: "{connection}",
+            allowTableExtensions: true
+        );
+
+        Database.Initialise();
+    """";
+
+    private static readonly string ModelCode = """"
+        [DbTable("Customers")]
+        public class Customer : IMicroORMSharp
+        {
+            [DbIdentity]
+            public long Id { get; set; }
+
+            [DbMaxLength(20)]
+            public string Forename { get; set; }
+
+            [DbColumn("Postalcode")]
+            public string Postcode { get; set; }
+
+            [DbIgnore]
+            public string NameAndPostcode => $"{Forename} {Postcode}";
+        }
+    """";
+
+    private static readonly string QueryCode = """"
+        var customers = await Database.Query<Customer>()
+            .Where(x => x.Active)
+            .OrderBy(x => x.Id)
+            .ExecuteAsync();
+    """";
+
+    private static readonly string CrudCode = """" 
+        var customer = await new Customer
+        {
+            Forename = "John",
+            Surname = "Doe",
+            Postcode = "TE1 1ST",
+            Active = true
+        }.InsertAsync();
+
+        customer.Forename = John 2;
+
+        await customer.UpdateAsync();
+
+        await customer.DeleteAsync();
+    """";
+
+    private static readonly string ContextCode = """"
+        using var db = Database.CreateContext("PrimarySqlServer");
+
+        var customer = await db.InsertAsync(new Customer
+        {
+            Forename = "Jane",
+            Surname = "Doe",
+            Active = true
+        });
+
+        var customers = await db.Query<Customer>()
+            .Where(x => x.Active)
+            .ExecuteAsync();
+    """";
+}
