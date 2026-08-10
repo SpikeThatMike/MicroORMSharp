@@ -4,9 +4,29 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - src/**
+      - tests/**
+      - Directory.Build.props
+      - MicroORMSharp.sln
+      - README.md
+      - LICENSE.txt
+      - ci.runsettings
+      - .github/mysql/**
+      - .github/workflows/publish.yml
   push:
     branches:
       - main
+    paths:
+      - src/**
+      - tests/**
+      - Directory.Build.props
+      - MicroORMSharp.sln
+      - README.md
+      - LICENSE.txt
+      - ci.runsettings
+      - .github/mysql/**
+      - .github/workflows/publish.yml
   workflow_dispatch:
 
 permissions:
@@ -17,12 +37,72 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       package_version: ${{ steps.version.outputs.package_version }}
+      package_changed: ${{ steps.package_changes.outputs.package_changed }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Detect package changes
+        id: package_changes
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if ($env:EVENT_NAME -eq 'workflow_dispatch') {
+            "package_changed=true" >> $env:GITHUB_OUTPUT
+            Write-Host "Manual run: treating package as changed."
+            exit 0
+          }
+
+          $baseSha = $env:BEFORE_SHA
+          $headSha = $env:HEAD_SHA
+
+          if ($env:EVENT_NAME -eq 'pull_request') {
+            $baseSha = $env:BASE_SHA
+            if (-not [string]::IsNullOrWhiteSpace($env:PR_HEAD_SHA)) {
+              $headSha = $env:PR_HEAD_SHA
+            }
+          }
+
+          if ([string]::IsNullOrWhiteSpace($baseSha) -or $baseSha -match '^0+$') {
+            $baseSha = "HEAD~1"
+          }
+
+          $changedFiles = git diff --name-only $baseSha $headSha
+          $packageRoots = @("src/")
+          $packageFiles = @(
+            "Directory.Build.props",
+            "MicroORMSharp.sln",
+            "README.md",
+            "LICENSE.txt"
+          )
+
+          $packageChanged = $false
+          foreach ($file in $changedFiles) {
+            $normalized = $file -replace '\\', '/'
+            $matchesRoot = $packageRoots | Where-Object { $normalized.StartsWith($_) } | Select-Object -First 1
+
+            if (($packageFiles -contains $normalized) -or $matchesRoot) {
+              $packageChanged = $true
+              break
+            }
+          }
+
+          "package_changed=$($packageChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+          if ($packageChanged) {
+            Write-Host "Package-affecting changes detected."
+          }
+          else {
+            Write-Host "No package-affecting changes detected; pack and publish steps will be skipped."
+          }
 
       - name: Calculate package version
         id: version
@@ -60,6 +140,7 @@ jobs:
           "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
 
       - name: Generate changelog
+        if: steps.package_changes.outputs.package_changed == 'true'
         id: changelog
         shell: pwsh
         run: |
@@ -163,9 +244,11 @@ jobs:
         run: dotnet test tests/MicroORMSharp.Tests.SqlServer/MicroORMSharp.Tests.SqlServer.csproj --configuration Release --no-build --settings ci.runsettings
 
       - name: Pack
+        if: steps.package_changes.outputs.package_changed == 'true'
         run: dotnet pack MicroORMSharp.sln --configuration Release --no-build --output ./artifacts/packages /p:PackageVersion=${{ steps.version.outputs.package_version }}
 
       - name: Verify signed NuGet packages
+        if: steps.package_changes.outputs.package_changed == 'true'
         shell: pwsh
         run: |
           Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -195,12 +278,14 @@ jobs:
           }
 
       - name: Upload packages artifact
+        if: steps.package_changes.outputs.package_changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: artifacts/packages
 
       - name: Upload changelog artifact
+        if: steps.package_changes.outputs.package_changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: release-changelog
@@ -217,7 +302,7 @@ jobs:
         run: docker rm -f microormsharp-mysql || true
 
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.outputs.package_changed == 'true'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
