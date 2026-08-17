@@ -55,27 +55,17 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           HEAD_SHA: ${{ github.sha }}
         run: |
-          if ($env:EVENT_NAME -eq 'workflow_dispatch') {
-            "package_changed=true" >> $env:GITHUB_OUTPUT
-            Write-Host "Manual run: treating package as changed."
-            exit 0
+          [xml]$props = Get-Content Directory.Build.props
+          $baseVersion = $props.Project.PropertyGroup.PackageVersionBase
+
+          if (-not $baseVersion) {
+            throw "PackageVersionBase was not found in Directory.Build.props."
           }
 
-          $baseSha = $env:BEFORE_SHA
-          $headSha = $env:HEAD_SHA
-
-          if ($env:EVENT_NAME -eq 'pull_request') {
-            $baseSha = $env:BASE_SHA
-            if (-not [string]::IsNullOrWhiteSpace($env:PR_HEAD_SHA)) {
-              $headSha = $env:PR_HEAD_SHA
-            }
+          if ($baseVersion -notmatch '^\d+\.\d+$') {
+            throw "PackageVersionBase must use major.minor format, for example 1.0."
           }
 
-          if ([string]::IsNullOrWhiteSpace($baseSha) -or $baseSha -match '^0+$') {
-            $baseSha = "HEAD~1"
-          }
-
-          $changedFiles = git diff --name-only $baseSha $headSha
           $packageRoots = @("src/")
           $packageFiles = @(
             "Directory.Build.props",
@@ -84,15 +74,53 @@ jobs:
             "LICENSE.txt"
           )
 
-          $packageChanged = $false
-          foreach ($file in $changedFiles) {
-            $normalized = $file -replace '\\', '/'
-            $matchesRoot = $packageRoots | Where-Object { $normalized.StartsWith($_) } | Select-Object -First 1
+          function Test-PackageChanges {
+            param([string[]]$ChangedFiles)
 
-            if (($packageFiles -contains $normalized) -or $matchesRoot) {
-              $packageChanged = $true
-              break
+            foreach ($file in $ChangedFiles) {
+              $normalized = $file -replace '\\', '/'
+              $matchesRoot = $packageRoots | Where-Object { $normalized.StartsWith($_) } | Select-Object -First 1
+
+              if (($packageFiles -contains $normalized) -or $matchesRoot) {
+                return $true
+              }
             }
+
+            return $false
+          }
+
+          $headSha = $env:HEAD_SHA
+          if ([string]::IsNullOrWhiteSpace($headSha)) {
+            $headSha = "HEAD"
+          }
+
+          if ($env:EVENT_NAME -eq 'pull_request') {
+            $baseSha = $env:BASE_SHA
+            if ([string]::IsNullOrWhiteSpace($baseSha)) {
+              $baseSha = "HEAD~1"
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($env:PR_HEAD_SHA)) {
+              $headSha = $env:PR_HEAD_SHA
+            }
+
+            $changedFiles = @(git diff --name-only $baseSha $headSha)
+            $packageChanged = Test-PackageChanges -ChangedFiles $changedFiles
+            Write-Host "Checked package-affecting changes in pull request diff $baseSha..$headSha."
+          }
+          else {
+            $latestTag = git tag --list "v$baseVersion.*" --sort=-version:refname | Select-Object -First 1
+
+            if ($latestTag) {
+              $changedFiles = @(git diff --name-only $latestTag $headSha)
+              Write-Host "Checked package-affecting changes since latest package tag $latestTag."
+            }
+            else {
+              $changedFiles = @(git ls-files)
+              Write-Host "No package tag found for base version $baseVersion; checking all tracked files."
+            }
+
+            $packageChanged = Test-PackageChanges -ChangedFiles $changedFiles
           }
 
           "package_changed=$($packageChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -337,7 +365,7 @@ jobs:
         run: docker rm -f microormsharp-sqlserver || true
 
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.outputs.package_changed == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && needs.validate.outputs.package_changed == 'true'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
