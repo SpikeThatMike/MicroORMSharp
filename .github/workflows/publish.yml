@@ -197,6 +197,16 @@ jobs:
             -v "$PWD/.github/mysql/local-infile.cnf:/etc/mysql/conf.d/local-infile.cnf:ro" \
             mysql:8.4
 
+      - name: Start SQL Server container
+        shell: bash
+        run: |
+          docker run -d \
+            --name microormsharp-sqlserver \
+            -e ACCEPT_EULA=Y \
+            -e MSSQL_SA_PASSWORD=Test1234 \
+            -p 1433:1433 \
+            mcr.microsoft.com/mssql/server:2022-latest
+
       - name: Install MySQL client
         shell: bash
         run: |
@@ -216,6 +226,21 @@ jobs:
           done
           echo "Configured MySQL did not become ready in time."
           docker logs microormsharp-mysql || true
+          exit 1
+
+      - name: Wait for configured SQL Server
+        shell: bash
+        env:
+          SQLSERVER_SA_PASSWORD: Test1234
+        run: |
+          for i in {1..60}; do
+            if docker exec microormsharp-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SQLSERVER_SA_PASSWORD" -Q "SELECT 1" -C -b >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Configured SQL Server did not become ready in time."
+          docker logs microormsharp-sqlserver || true
           exit 1
 
       - name: Verify MySQL local infile
@@ -296,10 +321,20 @@ jobs:
         shell: bash
         run: docker logs microormsharp-mysql || true
 
+      - name: Print SQL Server logs on failure
+        if: failure()
+        shell: bash
+        run: docker logs microormsharp-sqlserver || true
+
       - name: Stop MySQL container
         if: always()
         shell: bash
         run: docker rm -f microormsharp-mysql || true
+
+      - name: Stop SQL Server container
+        if: always()
+        shell: bash
+        run: docker rm -f microormsharp-sqlserver || true
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.outputs.package_changed == 'true'
